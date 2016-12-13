@@ -166,7 +166,7 @@ sub make_sample_metadata {
   Arg [1]      Array[WTSI::DNAP::Warehouse::Schema::Result::Study].
 
   Example    : my @avus = $ann->make_sample_metadata($sample);
-  Description: Return HTS sample metadata AVUs.
+  Description: Return HTS study metadata AVUs.
   Returntype : Array[HashRef]
 
 =cut
