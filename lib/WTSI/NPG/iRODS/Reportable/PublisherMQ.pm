@@ -1,4 +1,4 @@
-package WTSI::NPG::iRODS::Reportable::iRODSMQ;
+package WTSI::NPG::iRODS::Reportable::PublisherMQ;
 
 use strict;
 use warnings;
@@ -8,28 +8,7 @@ our $VERSION = '';
 
 with 'WTSI::NPG::iRODS::Reportable::Base';
 
-requires qw[ensure_collection_path
-            ensure_object_path];
-
-before 'remove_collection' => sub {
-    my ($self, @args) = @_;
-    if (! $self->no_rmq) {
-        my $collection = $self->ensure_collection_path($args[0]);
-        my $now = $self->_timestamp();
-        $self->_publish_message($collection, 'remove_collection', $now);
-    }
-};
-
-before 'remove_object' => sub {
-    my ($self, @args) = @_;
-    if (! $self->no_rmq) {
-        my $object = $self->ensure_object_path($args[0]);
-        $self->debug('RabbitMQ reporting for method remove_object',
-                     ' on data object ', $object);
-        my $now = $self->_timestamp();
-        $self->_publish_message($object, 'remove_object', $now);
-    }
-};
+our @REPORTABLE_METHODS = qw[publish];
 
 sub get_message_body {
     my ($self, $path) = @_;
@@ -45,11 +24,11 @@ __END__
 
 =head1 NAME
 
-WTSI::NPG::iRODS::Reportable::iRODSMQ
+WTSI::NPG::iRODS::Reportable::PublisherMQ
 
 =head1 DESCRIPTION
 
-A Role to enable reporting of method calls on an iRODS object to a
+A Role to enable reporting of iRODS Publisher method calls to a
 RabbitMQ message server.
 
 =head1 AUTHOR

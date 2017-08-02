@@ -35,10 +35,12 @@ my $conf = $ENV{'NPG_RMQ_CONFIG'} || './etc/rmq_test_config.json';
 my $queue = 'test_irods_data_create_messages';
 
 my $irods_class      = 'WTSI::NPG::TestMQiRODS';
-my $subscriber_class = 'WTSI::NPG::RabbitMQ::TestCommunicator';
+my $publisher_class  = 'WTSI::NPG::TestMQPublisher';
+my $communicator_class = 'WTSI::NPG::RabbitMQ::TestCommunicator';
 
 eval "require $irods_class";
-eval "require $subscriber_class";
+eval "require $publisher_class";
+eval "require $communicator_class";
 
 # Each test has a channel number, equal to $test_counter. The channel
 # is used by the publisher (iRODS instance) and subscriber in that test only.
@@ -53,7 +55,7 @@ sub setup_test : Test(setup) {
     # RabbitMQ test server.)
     $test_counter++;
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
     # messaging disabled for test setup
     my $irods = $irods_class->new(environment          => \%ENV,
@@ -84,7 +86,7 @@ sub require : Test(1) {
 sub test_message_queue : Test(2) {
     # ensure the test message queue is working correctly
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my $body = ["Hello, world!", ];
     $subscriber->publish(encode_json($body),
                          'npg.gateway',
@@ -115,7 +117,7 @@ sub test_add_collection : Test(14) {
     $irods->add_collection($irods_new_coll);
 
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
 
@@ -139,7 +141,7 @@ sub test_collection_avu : Test(43) {
     $irods->remove_collection_avu($irods_tmp_coll, 'colour', 'green');
 
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 3, 'Got 3 messages from queue');
 
@@ -186,7 +188,7 @@ sub test_put_move_collection : Test(27) {
     $irods->move_collection($dest_coll, $moved_coll);
 
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 2, 'Got 2 messages from queue');
 
@@ -216,7 +218,7 @@ sub test_remove_collection : Test(14) {
                                  );
     $irods->remove_collection($irods_new_coll);
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
 
     is(scalar @messages, 1, 'Got 1 message from queue');
@@ -245,7 +247,7 @@ sub test_set_collection_permissions : Test(27) {
                                    );
 
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 2, 'Got 2 messages from queue');
 
@@ -272,7 +274,7 @@ sub test_add_object : Test(18) {
     $irods->add_object("$data_path/lorem.txt", $added_remote_path);
 
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
 
     is(scalar @messages, 1, 'Got 1 message from queue');
@@ -304,7 +306,7 @@ sub test_copy_object : Test(18) {
     $irods->copy_object($remote_file_path, $copied_remote_path);
 
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
 
@@ -333,7 +335,7 @@ sub test_move_object : Test(18) {
     $irods->move_object($remote_file_path, $moved_remote_path);
 
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
 
@@ -365,7 +367,7 @@ sub test_object_avu : Test(55) {
     $irods->remove_object_avu($remote_file_path, 'colour', 'green');
 
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 3, 'Got 3 messages from queue');
 
@@ -409,7 +411,7 @@ sub test_remove_object : Test(16) {
                                  );
     $irods->remove_object($remote_file_path);
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
 
     is(scalar @messages, 1, 'Got 1 message from queue');
@@ -431,7 +433,7 @@ sub test_replace_object : Test(18) {
     $irods->replace_object("$data_path/lorem.txt", $remote_file_path);
 
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
 
@@ -467,7 +469,7 @@ sub test_set_object_permissions : Test(31) {
                                    $remote_file_path,
                                );
     my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $subscriber_class->new($subscriber_args);
+    my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 2, 'Got 2 messages from queue');
     my $method = 'set_object_permissions';
@@ -475,6 +477,35 @@ sub test_set_object_permissions : Test(31) {
     foreach my $message (@messages) {
         _test_object_message($message, $method);
     }
+}
+
+### methods for the Publisher class ###
+
+sub test_publish : Test(1) {
+    my $irods = $irods_class->new(environment          => \%ENV,
+                                  strict_baton_version => 0,
+                                  no_rmq               => 1,
+                                 );
+    my $user = 'public';
+    my $publisher = $publisher_class->new(
+        irods                => $irods,
+        routing_key_prefix   => 'test',
+        hostname             => $test_host,
+        rmq_config_path      => $conf,
+        channel              => $test_counter,
+    );
+
+    my $remote_file_path = "$irods_tmp_coll/ipsum.txt";
+    $publisher->publish("$data_path/lorem.txt",
+                        $remote_file_path);
+    my $subscriber_args = _get_subscriber_args($test_counter);
+    my $subscriber = $communicator_class->new($subscriber_args);
+    my @messages = $subscriber->read_all($queue);
+    is(scalar @messages, 1, 'Got 1 message from queue');
+    my $message = shift @messages;
+    my $method = 'publish';
+    _test_object_message($message, $method);
+
 }
 
 ### methods for repeated tests ###

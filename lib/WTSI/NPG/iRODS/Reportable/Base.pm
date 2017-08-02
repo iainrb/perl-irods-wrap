@@ -13,8 +13,9 @@ our $VERSION = '';
 with 'WTSI::NPG::RabbitMQ::Connectable';
 
 # consuming class must have these methods
-requires qw[list_path_details
-            get_irods_user];
+requires qw[get_irods_user
+            get_message_body
+       ];
 
 our @REPORTABLE_COLLECTION_METHODS =
     qw[
@@ -147,7 +148,7 @@ sub _get_headers {
 
 sub _publish_message {
     my ($self, $path, $name, $now) = @_;
-    my $response = $self->list_path_details($path);
+    my $response = $self->get_message_body($path);
     my $response_string = encode_json($response);
     $self->debug('Got response from baton: ', $response_string);
     my $key = $self->routing_key_prefix.'.irods.report';
