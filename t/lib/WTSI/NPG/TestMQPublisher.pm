@@ -1,4 +1,4 @@
-ackage WTSI::NPG::TestMQPublisher;
+package WTSI::NPG::TestMQPublisher;
 
 use Moose;
 
