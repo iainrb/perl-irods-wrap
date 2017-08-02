@@ -1,4 +1,4 @@
-package WTSI::NPG::iRODS::Reportable;
+package WTSI::NPG::iRODS::Reportable::Base;
 
 use strict;
 use warnings;
@@ -13,9 +13,7 @@ our $VERSION = '';
 with 'WTSI::NPG::RabbitMQ::Connectable';
 
 # consuming class must have these methods
-requires qw[ensure_collection_path
-            ensure_object_path
-            list_path_details
+requires qw[list_path_details
             get_irods_user];
 
 our @REPORTABLE_COLLECTION_METHODS =
@@ -120,26 +118,6 @@ foreach my $name (@REPORTABLE_OBJECT_METHODS) {
 
 }
 
-before 'remove_collection' => sub {
-    my ($self, @args) = @_;
-    if (! $self->no_rmq) {
-        my $collection = $self->ensure_collection_path($args[0]);
-        my $now = $self->_timestamp();
-        $self->_publish_message($collection, 'remove_collection', $now);
-    }
-};
-
-before 'remove_object' => sub {
-    my ($self, @args) = @_;
-    if (! $self->no_rmq) {
-        my $object = $self->ensure_object_path($args[0]);
-        $self->debug('RabbitMQ reporting for method remove_object',
-                     ' on data object ', $object);
-        my $now = $self->_timestamp();
-        $self->_publish_message($object, 'remove_object', $now);
-    }
-};
-
 sub _build_no_rmq {
     my ($self, ) = @_;
     my $no_rmq = 1;
@@ -202,7 +180,7 @@ __END__
 
 =head1 NAME
 
-WTSI::NPG::iRODS::Reportable
+WTSI::NPG::iRODS::Reportable::Base
 
 =head1 DESCRIPTION
 
