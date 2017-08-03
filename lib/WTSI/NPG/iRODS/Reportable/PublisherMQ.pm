@@ -8,10 +8,25 @@ our $VERSION = '';
 
 with 'WTSI::NPG::iRODS::Reportable::Base';
 
-# TODO publish can process both objects and collections;
-# nomenclature should reflect this
 
-#our @REPORTABLE_OBJECT_METHODS = qw[publish];
+our @REPORTABLE_METHODS = qw[publish];
+
+foreach my $name (@REPORTABLE_METHODS) {
+
+    around $name => sub {
+        my ($orig, $self, @args) = @_;
+	my $now = $self->_timestamp();
+        my $path = $self->$orig(@args);
+        if (! $self->no_rmq) {
+            $self->debug('RabbitMQ reporting for method ', $name,
+                         ' on path ', $path);
+            $self->_publish_message($path, $name, $now);
+        }
+        return $path;
+    };
+
+}
+
 
 sub get_message_body {
     my ($self, $path) = @_;
