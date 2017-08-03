@@ -500,7 +500,9 @@ sub test_publish : Test(14) {
     my $remote_file_path = "$irods_tmp_coll/ipsum.txt";
     $publisher->publish("$data_path/lorem.txt",
                         $remote_file_path);
-    print STDERR Dumper $irods->list_path_details($remote_file_path);
+    print STDERR "Publisher channel: ".$publisher->channel."\n";
+    print STDERR $irods->ensure_object_path($remote_file_path);
+    print STDERR "\n";
     my $subscriber_args = _get_subscriber_args($test_counter);
     print STDERR Dumper $subscriber_args;
     my $subscriber = $communicator_class->new($subscriber_args);
