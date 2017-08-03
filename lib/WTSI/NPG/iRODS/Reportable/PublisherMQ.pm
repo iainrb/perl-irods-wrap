@@ -11,7 +11,7 @@ with 'WTSI::NPG::iRODS::Reportable::Base';
 # TODO publish can process both objects and collections;
 # nomenclature should reflect this
 
-our @REPORTABLE_OBJECT_METHODS = qw[publish];
+#our @REPORTABLE_OBJECT_METHODS = qw[publish];
 
 sub get_message_body {
     my ($self, $path) = @_;
