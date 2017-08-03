@@ -17,27 +17,6 @@ requires qw[get_irods_user
             get_message_body
        ];
 
-our @REPORTABLE_COLLECTION_METHODS =
-    qw[
-          add_collection
-          put_collection
-          move_collection
-          set_collection_permissions
-          add_collection_avu
-          remove_collection_avu
-  ];
-
-our @REPORTABLE_OBJECT_METHODS =
-    qw[
-          add_object
-          replace_object
-          copy_object
-          move_object
-          set_object_permissions
-          add_object_avu
-          remove_object_avu
-  ];
-
 has 'channel' =>
     (is       => 'ro',
      isa      => 'Int',
@@ -87,37 +66,6 @@ after 'DEMOLISH' => sub {
     }
 };
 
-foreach my $name (@REPORTABLE_COLLECTION_METHODS) {
-
-    around $name => sub {
-        my ($orig, $self, @args) = @_;
-	my $now = $self->_timestamp();
-        my $collection = $self->$orig(@args);
-        if (! $self->no_rmq) {
-            $self->debug('RabbitMQ reporting for method ', $name,
-                         ' on collection ', $collection);
-            $self->_publish_message($collection, $name, $now);
-        }
-        return $collection;
-    };
-
-}
-
-foreach my $name (@REPORTABLE_OBJECT_METHODS) {
-
-    around $name => sub {
-        my ($orig, $self, @args) = @_;
-	my $now = $self->_timestamp();
-        my $object = $self->$orig(@args);
-        if (! $self->no_rmq) {
-            $self->debug('RabbitMQ reporting for method ', $name,
-                         ' on data object ', $object);
-            $self->_publish_message($object, $name, $now);
-        }
-        return $object;
-    };
-
-}
 
 sub _build_no_rmq {
     my ($self, ) = @_;
