@@ -43,7 +43,7 @@ foreach my $name (@REPORTABLE_COLLECTION_METHODS) {
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on collection ', $collection);
-            $self->_publish_message($collection, $name, $now);
+            $self->publish_rmq_message($collection, $name, $now);
         }
         return $collection;
     };
@@ -59,7 +59,7 @@ foreach my $name (@REPORTABLE_OBJECT_METHODS) {
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on data object ', $object);
-            $self->_publish_message($object, $name, $now);
+            $self->publish_rmq_message($object, $name, $now);
         }
         return $object;
     };
