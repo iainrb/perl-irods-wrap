@@ -8,7 +8,6 @@ our $VERSION = '';
 
 with 'WTSI::NPG::iRODS::Reportable::Base';
 
-
 our @REPORTABLE_METHODS = qw[publish];
 
 foreach my $name (@REPORTABLE_METHODS) {
@@ -20,7 +19,8 @@ foreach my $name (@REPORTABLE_METHODS) {
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on path ', $path);
-            $self->_publish_message($path, $name, $now);
+            print STDERR "RMQ message for Publisher with path '$path'\n";
+            $self->publish_rmq_message($path, $name, $now);
         }
         return $path;
     };

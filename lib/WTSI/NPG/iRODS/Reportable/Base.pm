@@ -67,6 +67,24 @@ after 'DEMOLISH' => sub {
 };
 
 
+sub publish_rmq_message {
+    my ($self, $path, $name, $now) = @_;
+    my $response = $self->get_message_body($path);
+    my $response_string = encode_json($response);
+    $self->debug('Got response from baton: ', $response_string);
+    my $key = $self->routing_key_prefix.'.irods.report';
+    my $headers = $self->_get_headers($response, $name, $now);
+    $self->rmq->publish($self->channel,
+                        $key,
+                        $response_string,
+                        { exchange => $self->exchange },
+                        { headers => $headers },
+                    );
+    # Net::AMQP::RabbitMQ documentation specifies 'header' as key in
+    # props argument to 'publish', but this is incorrect (2017-07-31)
+    return 1;
+}
+
 sub _build_no_rmq {
     my ($self, ) = @_;
     my $no_rmq = 1;
@@ -92,24 +110,6 @@ sub _get_headers {
         }
     }
     return $headers;
-}
-
-sub _publish_message {
-    my ($self, $path, $name, $now) = @_;
-    my $response = $self->get_message_body($path);
-    my $response_string = encode_json($response);
-    $self->debug('Got response from baton: ', $response_string);
-    my $key = $self->routing_key_prefix.'.irods.report';
-    my $headers = $self->_get_headers($response, $name, $now);
-    $self->rmq->publish($self->channel,
-                        $key,
-                        $response_string,
-                        { exchange => $self->exchange },
-                        { headers => $headers },
-                    );
-    # Net::AMQP::RabbitMQ documentation specifies 'header' as key in
-    # props argument to 'publish', but this is incorrect (2017-07-31)
-    return 1;
 }
 
 sub _timestamp {

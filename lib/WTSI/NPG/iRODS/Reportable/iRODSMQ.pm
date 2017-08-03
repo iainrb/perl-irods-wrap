@@ -71,7 +71,7 @@ before 'remove_collection' => sub {
     if (! $self->no_rmq) {
         my $collection = $self->ensure_collection_path($args[0]);
         my $now = $self->_timestamp();
-        $self->_publish_message($collection, 'remove_collection', $now);
+        $self->publish_rmq_message($collection, 'remove_collection', $now);
     }
 };
 
@@ -82,7 +82,7 @@ before 'remove_object' => sub {
         $self->debug('RabbitMQ reporting for method remove_object',
                      ' on data object ', $object);
         my $now = $self->_timestamp();
-        $self->_publish_message($object, 'remove_object', $now);
+        $self->publish_rmq_message($object, 'remove_object', $now);
     }
 };
 
