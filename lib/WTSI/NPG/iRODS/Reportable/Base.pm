@@ -25,7 +25,6 @@ our @REPORTABLE_COLLECTION_METHODS =
           set_collection_permissions
           add_collection_avu
           remove_collection_avu
-          publish
   ];
 
 our @REPORTABLE_OBJECT_METHODS =
