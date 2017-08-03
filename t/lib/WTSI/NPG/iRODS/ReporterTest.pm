@@ -505,7 +505,7 @@ sub test_publish : Test(14) {
     print STDERR Dumper $subscriber_args;
     my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
-    print STDERR Dumper $messages;
+    print STDERR Dumper \@messages;
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
     my $method = 'publish';
