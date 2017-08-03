@@ -502,6 +502,8 @@ sub test_publish : Test(14) {
                         $remote_file_path);
     print STDERR $irods->ensure_object_path($remote_file_path);
     print STDERR "\n";
+    my $coll = $publisher->irods->working_collection;
+    print STDERR "iRODS working collection: ".$coll."\n";
     my $exchange = $publisher->exchange;
     print STDERR "Publisher exchange: ".$exchange."\n";
     my $subscriber_args = _get_subscriber_args($test_counter);
