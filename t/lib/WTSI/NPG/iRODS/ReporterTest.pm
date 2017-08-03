@@ -10,6 +10,8 @@ use Log::Log4perl;
 use Test::Exception;
 use Test::More;
 
+use Data::Dumper; # FIXME
+
 use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
 
 Log::Log4perl::init('./etc/log4perl_tests.conf');
@@ -481,7 +483,7 @@ sub test_set_object_permissions : Test(31) {
 
 ### methods for the Publisher class ###
 
-sub test_publish : Test(1) {
+sub test_publish : Test(14) {
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
                                   no_rmq               => 1,
@@ -498,9 +500,12 @@ sub test_publish : Test(1) {
     my $remote_file_path = "$irods_tmp_coll/ipsum.txt";
     $publisher->publish("$data_path/lorem.txt",
                         $remote_file_path);
+    print STDERR Dumper $irods->list_path_details($remote_file_path);
     my $subscriber_args = _get_subscriber_args($test_counter);
+    print STDERR Dumper $subscriber_args;
     my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
+    print STDERR Dumper $messages;
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
     my $method = 'publish';
