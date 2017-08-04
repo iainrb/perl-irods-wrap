@@ -493,7 +493,7 @@ sub test_set_object_permissions : Test(31) {
 
 ### methods for the Publisher class ###
 
-sub test_publish : Test(14) {
+sub test_publish : Test(16) {
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
                                   no_rmq               => 1,

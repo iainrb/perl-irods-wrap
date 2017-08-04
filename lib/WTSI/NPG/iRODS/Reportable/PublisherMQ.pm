@@ -14,7 +14,7 @@ foreach my $name (@REPORTABLE_METHODS) {
 
     around $name => sub {
         my ($orig, $self, @args) = @_;
- 	my $now = $self->_timestamp();
+ 	my $now = $self->rmq_timestamp();
         my $path = $self->$orig(@args);
         print STDERR "Method modifier for Publisher in effect\n";
         if (! $self->no_rmq) {

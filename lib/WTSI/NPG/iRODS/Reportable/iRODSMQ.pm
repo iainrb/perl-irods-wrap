@@ -38,7 +38,7 @@ foreach my $name (@REPORTABLE_COLLECTION_METHODS) {
 
     around $name => sub {
         my ($orig, $self, @args) = @_;
-	my $now = $self->_timestamp();
+	my $now = $self->rmq_timestamp();
         my $collection = $self->$orig(@args);
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,

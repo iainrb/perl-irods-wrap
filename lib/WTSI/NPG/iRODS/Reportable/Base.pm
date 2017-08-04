@@ -87,6 +87,16 @@ sub publish_rmq_message {
     return 1;
 }
 
+
+sub rmq_timestamp {
+    my ($self, ) = @_;
+    my ($seconds, $microseconds) = gettimeofday();
+    my $time = DateTime->from_epoch(epoch => $seconds);
+    my $decimal_string = sprintf "%06d", $microseconds;
+    return $time->iso8601().q{.}.$decimal_string;
+}
+
+
 sub _build_no_rmq {
     my ($self, ) = @_;
     my $no_rmq = 1;
@@ -112,14 +122,6 @@ sub _get_headers {
         }
     }
     return $headers;
-}
-
-sub _timestamp {
-    my ($self, ) = @_;
-    my ($seconds, $microseconds) = gettimeofday();
-    my $time = DateTime->from_epoch(epoch => $seconds);
-    my $decimal_string = sprintf "%06d", $microseconds;
-    return $time->iso8601().q{.}.$decimal_string;
 }
 
 no Moose::Role;
