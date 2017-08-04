@@ -529,8 +529,8 @@ sub test_publish : Test(14) {
     print STDERR "\n";
     my $coll = $publisher->irods->working_collection;
     print STDERR "iRODS working collection: ".$coll."\n";
-    print STDERR "Publisher answer: ".$publisher->answer."\n";
-    my $exchange = $publisher->exchange;
+    #print STDERR "Publisher answer: ".$publisher->answer."\n";
+    #my $exchange = $publisher->exchange;
     print STDERR "Publisher exchange: ".$exchange."\n";
     my $subscriber_args = _get_subscriber_args($test_counter);
     print STDERR Dumper $subscriber_args;
