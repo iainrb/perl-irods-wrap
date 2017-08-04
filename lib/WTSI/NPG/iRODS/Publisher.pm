@@ -61,6 +61,7 @@ has 'checksum_cache_time_delta' =>
 ### temporary subroutine to enable PublisherMQ role
 
 sub get_irods_user {
+    my ($self,) = @_;
     return $self->irods->get_irods_user;
 }
 
