@@ -2,7 +2,7 @@
     "password": "p455w0rd",
     "port": 5671,
     "ssl": 1,
-    "ssl_cacert": "",
+    "ssl_cacert": "/nfs/users/nfs_i/ib5/.ssh/ssl-cert-snakeoil.pem",
     "ssl_verify_host": 0,
     "user": "test_user",
     "vhost": "/npg"

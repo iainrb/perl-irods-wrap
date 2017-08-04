@@ -38,7 +38,6 @@ foreach my $name (@REPORTABLE_COLLECTION_METHODS) {
 
     around $name => sub {
         my ($orig, $self, @args) = @_;
-        print STDERR "Collection method modifier for iRODS in effect\n";
 	my $now = $self->_timestamp();
         my $collection = $self->$orig(@args);
         if (! $self->no_rmq) {

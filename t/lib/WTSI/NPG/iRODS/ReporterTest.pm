@@ -470,6 +470,7 @@ sub test_set_object_permissions : Test(31) {
                                    $user,
                                    $remote_file_path,
                                );
+    print STDERR "Answer attribute: ".$irods->answer."\n";
     my $subscriber_args = _get_subscriber_args($test_counter);
     my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
