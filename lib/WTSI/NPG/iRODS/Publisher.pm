@@ -22,6 +22,7 @@ with qw[
          WTSI::NPG::Accountable
          WTSI::NPG::iRODS::AVUCollator
          WTSI::NPG::iRODS::Annotator
+         WTSI::NPG::iRODS::Reportable::PublisherMQ
        ];
 
 has 'irods' =>
