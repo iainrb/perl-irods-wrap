@@ -54,7 +54,7 @@ foreach my $name (@REPORTABLE_OBJECT_METHODS) {
 
     around $name => sub {
         my ($orig, $self, @args) = @_;
-	my $now = $self->_timestamp();
+	my $now = $self->rmq_timestamp();
         my $object = $self->$orig(@args);
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
@@ -70,7 +70,7 @@ before 'remove_collection' => sub {
     my ($self, @args) = @_;
     if (! $self->no_rmq) {
         my $collection = $self->ensure_collection_path($args[0]);
-        my $now = $self->_timestamp();
+        my $now = $self->rmq_timestamp();
         $self->publish_rmq_message($collection, 'remove_collection', $now);
     }
 };
@@ -81,7 +81,7 @@ before 'remove_object' => sub {
         my $object = $self->ensure_object_path($args[0]);
         $self->debug('RabbitMQ reporting for method remove_object',
                      ' on data object ', $object);
-        my $now = $self->_timestamp();
+        my $now = $self->rmq_timestamp();
         $self->publish_rmq_message($object, 'remove_object', $now);
     }
 };
