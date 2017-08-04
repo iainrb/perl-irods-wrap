@@ -471,6 +471,10 @@ sub test_set_object_permissions : Test(31) {
                                    $remote_file_path,
                                );
     print STDERR "Answer attribute: ".$irods->answer."\n";
+    print STDERR "iRODS Roles:\n";
+    for my $role ( $irods->meta->calculate_all_roles_with_inheritance ) {
+        print STDERR "Role consumed: ".$role->name."\n";
+    }
     my $subscriber_args = _get_subscriber_args($test_counter);
     my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
