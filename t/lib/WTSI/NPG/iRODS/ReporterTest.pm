@@ -38,7 +38,7 @@ my $queue = 'test_irods_data_create_messages';
 
 my $irods_class      = 'WTSI::NPG::TestMQiRODS';
 #my $publisher_class  = 'WTSI::NPG::TestMQPublisher';
-my $publisher_class  = 'WTSI::NPG::Publisher';
+my $publisher_class  = 'WTSI::NPG::iRODS::Publisher';
 my $communicator_class = 'WTSI::NPG::RabbitMQ::TestCommunicator';
 
 eval "require $irods_class";

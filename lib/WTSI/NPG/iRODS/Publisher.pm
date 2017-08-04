@@ -58,11 +58,17 @@ has 'checksum_cache_time_delta' =>
                     'cache by more than this number of seconds, the cache ' .
                     'is stale');
 
-### temporary subroutine to enable PublisherMQ role
+### temporary subroutines to enable PublisherMQ role
 
 sub get_irods_user {
     my ($self,) = @_;
     return $self->irods->get_irods_user;
+}
+
+
+sub list_path_details {
+    my ($self,) = @_;
+    return $self->irods->list_path_details;
 }
 
 =head2 publish
