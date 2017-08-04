@@ -5,7 +5,10 @@ use Moose;
 use WTSI::NPG::iRODS::Publisher;
 
 extends 'WTSI::NPG::iRODS::Publisher';
-with 'WTSI::NPG::iRODS::Reportable::PublisherMQ';
+
+with qw[WTSI::NPG::iRODS::Reportable::PublisherMQ
+        WTSI::NPG::iRODS::Reportable::TestRole
+   ];
 
 has 'answer' =>
     (is       => 'ro',
