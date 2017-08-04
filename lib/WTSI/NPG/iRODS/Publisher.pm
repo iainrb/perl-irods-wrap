@@ -67,8 +67,8 @@ sub get_irods_user {
 
 
 sub list_path_details {
-    my ($self,) = @_;
-    return $self->irods->list_path_details;
+    my ($self, $path) = @_;
+    return $self->irods->list_path_details($path);
 }
 
 =head2 publish
