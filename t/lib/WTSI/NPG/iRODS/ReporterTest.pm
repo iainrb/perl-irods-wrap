@@ -502,7 +502,14 @@ sub test_publish : Test(14) {
     $publisher->publish("$data_path/lorem.txt",
                         $remote_file_path);
     print STDERR "Publisher class name: ".$publisher->meta->name."\n";
-    print STDERR Dumper $publisher->meta->get_all_attributes;
+    for my $class ( $publisher->meta->linearized_isa ) {
+        print STDERR "Parent class: $class\n";
+    }
+    for my $role ( $publisher->meta->calculate_all_roles ) {
+        print STDERR "Role consumed: ".$role->name."\n";
+    }
+
+    #print STDERR Dumper $publisher->meta->get_all_attributes;
     print STDERR $irods->ensure_object_path($remote_file_path);
     print STDERR "\n";
     my $coll = $publisher->irods->working_collection;
