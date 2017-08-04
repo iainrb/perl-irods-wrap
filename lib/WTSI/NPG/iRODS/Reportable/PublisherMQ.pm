@@ -14,7 +14,7 @@ foreach my $name (@REPORTABLE_METHODS) {
 
     around $name => sub {
         my ($orig, $self, @args) = @_;
-	my $now = $self->_timestamp();
+ 	my $now = $self->_timestamp();
         my $path = $self->$orig(@args);
         print STDERR "Method modifier for Publisher in effect\n";
         if (! $self->no_rmq) {
@@ -30,6 +30,19 @@ foreach my $name (@REPORTABLE_METHODS) {
 
 }
 
+sub BUILD {
+    # BUILD method is required for compatibility with the Base role
+    my ($self) = @_;
+    $self->debug('Initializing Publisher with RabbitMQ reporting');
+    return $self;
+}
+
+sub DEMOLISH {
+    # DEMOLISH method is required for compatibility with the Base role
+    my ($self) = @_;
+    $self->debug('Demolishing Publisher with RabbitMQ reporting');
+    return $self;
+}
 
 sub get_message_body {
     my ($self, $path) = @_;

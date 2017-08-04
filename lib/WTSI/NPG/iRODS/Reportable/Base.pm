@@ -13,7 +13,9 @@ our $VERSION = '';
 with 'WTSI::NPG::RabbitMQ::Connectable';
 
 # consuming class must have these methods
-requires qw[get_irods_user
+requires qw[BUILD
+            DEMOLISH
+            get_irods_user
             get_message_body
        ];
 
