@@ -520,8 +520,8 @@ sub test_publish : Test(14) {
     for my $role ( @roles ) {
         print STDERR "Role consumed: ".$role->name."\n";
     }
-    my $answer_found = $publisher->meta->has_attribute('answer');
-    print STDERR "Answer found: $answer_found\n";
+    #my $answer_found = $publisher->meta->has_attribute('answer');
+    #print STDERR "Answer found: $answer_found\n";
     for my $attr ( $publisher->meta->get_all_attributes ) {
         print STDERR "Attribute: ".$attr->name."\n";
     }
