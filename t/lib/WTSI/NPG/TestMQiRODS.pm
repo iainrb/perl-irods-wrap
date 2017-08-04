@@ -5,7 +5,9 @@ use Moose;
 use WTSI::NPG::iRODS;
 
 extends 'WTSI::NPG::iRODS';
-with 'WTSI::NPG::iRODS::Reportable::iRODSMQ';
+with qw[WTSI::NPG::iRODS::Reportable::iRODSMQ
+        WTSI::NPG::iRODS::Reportable::TestRole
+   ];
 
 
 has 'answer' =>
