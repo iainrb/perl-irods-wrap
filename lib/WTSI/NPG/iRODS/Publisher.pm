@@ -58,6 +58,12 @@ has 'checksum_cache_time_delta' =>
                     'cache by more than this number of seconds, the cache ' .
                     'is stale');
 
+### temporary subroutine to enable PublisherMQ role
+
+sub get_irods_user {
+    return $self->irods->get_irods_user;
+}
+
 =head2 publish
 
   Arg [1]    : Path to local file for directory, Str.
