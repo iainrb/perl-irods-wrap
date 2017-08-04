@@ -505,11 +505,17 @@ sub test_publish : Test(14) {
     for my $class ( $publisher->meta->linearized_isa ) {
         print STDERR "Parent class: $class\n";
     }
-    for my $role ( $publisher->meta->calculate_all_roles ) {
+    my @roles = $publisher->meta->calculate_all_roles_with_inheritance;
+    my $roles_total = scalar @roles;
+    print STDERR "$roles_total roles found\n";
+    for my $role ( @roles ) {
         print STDERR "Role consumed: ".$role->name."\n";
     }
-
-    #print STDERR Dumper $publisher->meta->get_all_attributes;
+    my $answer_found = $publisher->meta->has_attribute('answer');
+    print STDERR "Answer found: $answer_found\n";
+    for my $attr ( $publisher->meta->get_all_attributes ) {
+        print STDERR "Attribute: ".$attr->name."\n";
+    }
     print STDERR $irods->ensure_object_path($remote_file_path);
     print STDERR "\n";
     my $coll = $publisher->irods->working_collection;
