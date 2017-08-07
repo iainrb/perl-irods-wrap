@@ -10,8 +10,6 @@ use Log::Log4perl;
 use Test::Exception;
 use Test::More;
 
-use Data::Dumper; # FIXME
-
 use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
 
 Log::Log4perl::init('./etc/log4perl_tests.conf');
@@ -475,11 +473,6 @@ sub test_set_object_permissions : Test(31) {
                                    $user,
                                    $remote_file_path,
                                );
-    print STDERR "Answer attribute: ".$irods->answer."\n";
-    print STDERR "iRODS Roles:\n";
-    for my $role ( $irods->meta->calculate_all_roles_with_inheritance ) {
-        print STDERR "Role consumed: ".$role->name."\n";
-    }
     my $subscriber_args = _get_subscriber_args($test_counter);
     my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
@@ -493,7 +486,7 @@ sub test_set_object_permissions : Test(31) {
 
 ### methods for the Publisher class ###
 
-sub test_publish : Test(16) {
+sub test_publish : Test(17) {
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
                                   no_rmq               => 1,
@@ -506,37 +499,13 @@ sub test_publish : Test(16) {
         rmq_config_path      => $conf,
         channel              => $test_counter,
     );
-
     my $remote_file_path = "$irods_tmp_coll/ipsum.txt";
     $publisher->publish("$data_path/lorem.txt",
                         $remote_file_path);
-    print STDERR "Publisher class name: ".$publisher->meta->name."\n";
-    for my $class ( $publisher->meta->linearized_isa ) {
-        print STDERR "Parent class: $class\n";
-    }
-    my @roles = $publisher->meta->calculate_all_roles_with_inheritance;
-    my $roles_total = scalar @roles;
-    print STDERR "$roles_total roles found\n";
-    for my $role ( @roles ) {
-        print STDERR "Role consumed: ".$role->name."\n";
-    }
-    #my $answer_found = $publisher->meta->has_attribute('answer');
-    #print STDERR "Answer found: $answer_found\n";
-    for my $attr ( $publisher->meta->get_all_attributes ) {
-        print STDERR "Attribute: ".$attr->name."\n";
-    }
-    print STDERR $irods->ensure_object_path($remote_file_path);
-    print STDERR "\n";
-    my $coll = $publisher->irods->working_collection;
-    print STDERR "iRODS working collection: ".$coll."\n";
-    #print STDERR "Publisher answer: ".$publisher->answer."\n";
-    my $exchange = $publisher->exchange;
-    print STDERR "Publisher exchange: ".$exchange."\n";
+    ok($irods->is_object($remote_file_path), 'File published to iRODS');
     my $subscriber_args = _get_subscriber_args($test_counter);
-    print STDERR Dumper $subscriber_args;
     my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
-    print STDERR Dumper \@messages;
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
     my $method = 'publish';
