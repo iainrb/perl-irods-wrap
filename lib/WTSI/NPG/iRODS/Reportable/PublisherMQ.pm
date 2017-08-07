@@ -16,14 +16,10 @@ foreach my $name (@REPORTABLE_METHODS) {
         my ($orig, $self, @args) = @_;
  	my $now = $self->rmq_timestamp();
         my $path = $self->$orig(@args);
-        print STDERR "Method modifier for Publisher in effect\n";
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on path ', $path);
-            print STDERR "RMQ message for Publisher with path '$path'\n";
             $self->publish_rmq_message($path, $name, $now);
-        } else {
-            print STDERR "Omitting RabbitMQ for Publisher\n";
         }
         return $path;
     };
