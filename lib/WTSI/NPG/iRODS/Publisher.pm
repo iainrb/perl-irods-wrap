@@ -22,7 +22,6 @@ with qw[
          WTSI::NPG::Accountable
          WTSI::NPG::iRODS::AVUCollator
          WTSI::NPG::iRODS::Annotator
-         WTSI::NPG::iRODS::Reportable::PublisherMQ
 ];
 
 has 'irods' =>
@@ -58,18 +57,6 @@ has 'checksum_cache_time_delta' =>
                     'cache by more than this number of seconds, the cache ' .
                     'is stale');
 
-### temporary subroutines to enable PublisherMQ role
-
-sub get_irods_user {
-    my ($self,) = @_;
-    return $self->irods->get_irods_user;
-}
-
-
-sub list_path_details {
-    my ($self, $path) = @_;
-    return $self->irods->list_path_details($path);
-}
 
 =head2 publish
 
