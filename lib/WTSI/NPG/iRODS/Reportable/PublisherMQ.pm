@@ -44,9 +44,22 @@ sub DEMOLISH {
     return $self;
 }
 
+
+### subroutines to enable PublisherMQ role
+
+sub get_irods_user {
+    my ($self,) = @_;
+    return $self->irods->get_irods_user;
+}
+
 sub get_message_body {
     my ($self, $path) = @_;
     return $self->list_path_details($path);
+}
+
+sub list_path_details {
+    my ($self, $path) = @_;
+    return $self->irods->list_path_details($path);
 }
 
 no Moose::Role;
