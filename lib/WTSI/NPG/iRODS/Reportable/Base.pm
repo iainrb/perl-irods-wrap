@@ -13,6 +13,7 @@ our $VERSION = '';
 with 'WTSI::NPG::RabbitMQ::Connectable';
 
 # consuming class must have these methods
+# BUILD and DEMOLISH must be explicitly declared to enable method modifiers
 requires qw[BUILD
             DEMOLISH
             get_irods_user
@@ -148,6 +149,14 @@ The consuming class must have the following methods:
 
 =item
 
+BUILD
+
+=item
+
+DEMOLISH
+
+=item
+
 ensure_collection_path
 
 =item
@@ -160,7 +169,9 @@ get_irods_user
 
 =back
 
-See the WTSI::NPG::iRODS class for examples.
+See the WTSI::NPG::iRODS class for examples. The BUILD and DEMOLISH
+methods must be explicitly declared, to enable the method modifiers in
+this Role.
 
 
 =head2 Test requirements

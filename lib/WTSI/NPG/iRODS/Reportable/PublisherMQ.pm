@@ -27,21 +27,20 @@ foreach my $name (@REPORTABLE_METHODS) {
 }
 
 sub BUILD {
-    # BUILD method is required for compatibility with the Base role
+    # BUILD method is required for WTSI::NPG::iRODS::Reportable::Base
     my ($self) = @_;
     $self->debug('Initializing Publisher with RabbitMQ reporting');
     return $self;
 }
 
 sub DEMOLISH {
-    # DEMOLISH method is required for compatibility with the Base role
+    # DEMOLISH method is required for WTSI::NPG::iRODS::Reportable::Base
     my ($self) = @_;
     $self->debug('Demolishing Publisher with RabbitMQ reporting');
     return $self;
 }
 
-
-### subroutines to enable PublisherMQ role
+### subroutines required by WTSI::NPG::iRODS::Reportable::Base
 
 sub get_irods_user {
     my ($self,) = @_;
@@ -71,8 +70,11 @@ WTSI::NPG::iRODS::Reportable::PublisherMQ
 
 =head1 DESCRIPTION
 
-A Role to enable reporting of iRODS Publisher method calls to a
-RabbitMQ message server.
+A Role to enable reporting of WTSI::NPG::iRODS::Publisher method calls
+to a RabbitMQ message server.
+
+This Role could also be consumed by other classes which have a
+WTSI::NPG::iRODS object as an attribute.
 
 =head1 AUTHOR
 
