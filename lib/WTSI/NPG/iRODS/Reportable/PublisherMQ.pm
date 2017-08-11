@@ -18,10 +18,10 @@ foreach my $name (@REPORTABLE_METHODS) {
         my $obj = $self->$orig(@args);
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
-                         ' on path ', $path);
+                         ' on path ', $obj->str() );
             $self->publish_rmq_message($obj, $name, $now);
         }
-        return $path;
+        return $obj;
     };
 
 }
