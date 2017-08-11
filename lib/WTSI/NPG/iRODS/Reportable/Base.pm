@@ -71,11 +71,12 @@ after 'DEMOLISH' => sub {
 
 
 sub publish_rmq_message {
-    my ($self, $published, $name, $now) = @_;
-    my $body = $self->get_message_body($published);
-    $self->debug('Got message body: ', $body);
+    my ($self, $path, $name, $now) = @_;
+    my $response = $self->get_message_body($path);
+    my $response_string = encode_json($response);
+    $self->debug('Got response from baton: ', $response_string);
     my $key = $self->routing_key_prefix.'.irods.report';
-    my $headers = $self->_get_headers($body, $name, $now);
+    my $headers = $self->_get_headers($response, $name, $now);
     $self->rmq->publish($self->channel,
                         $key,
                         $response_string,
@@ -107,8 +108,7 @@ sub _build_no_rmq {
 }
 
 sub _get_headers {
-    my ($self, $body, $name, $time) = @_;
-    my $body_scalar = decode($body);
+    my ($self, $response, $name, $time) = @_;
     my $irods_user = $self->get_irods_user();
     my $headers = {
         method     => $name,       # name of Moose method called
@@ -117,7 +117,7 @@ sub _get_headers {
 	irods_user => $irods_user, # iRODS username
         type       => q{},         # file type from metadata, if any
     };
-    foreach my $avu (@{$body_scalar->{'avus'}}) {
+    foreach my $avu (@{$response->{'avus'}}) {
         if ($avu->{attribute} eq 'type') {
             $headers->{type} = $avu->{value};
         }
