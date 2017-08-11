@@ -18,7 +18,6 @@ requires qw[BUILD
             DEMOLISH
             get_irods_user
             get_message_body
-            list_path_details
        ];
 
 has 'channel' =>

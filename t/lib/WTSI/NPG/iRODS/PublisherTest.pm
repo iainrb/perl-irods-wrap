@@ -66,13 +66,13 @@ sub publish : Test(6) {
 
   my $local_file_path  = "$tmp_data_path/publish/a.txt";
   my $remote_file_path = "$irods_tmp_coll/a.txt";
-  is($publisher->publish($local_file_path, $remote_file_path),
+  is($publisher->publish($local_file_path, $remote_file_path)->str(),
      $remote_file_path, 'publish, file');
   ok($irods->is_object($remote_file_path), 'publish, file -> data object');
 
   my $local_dir_path  = "$tmp_data_path/publish";
   my $remote_dir_path = $irods_tmp_coll;
-  is($publisher->publish($local_dir_path, $remote_dir_path),
+  is($publisher->publish($local_dir_path, $remote_dir_path)->str(),
      "$remote_dir_path/publish", 'publish, directory');
   ok($irods->is_collection("$remote_dir_path/"),
      'publish, directory -> collection');
@@ -142,7 +142,7 @@ sub pf_new_full_path_no_meta_no_stamp {
   my $timestamp_regex = '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}';
   my $local_path_a = "$tmp_data_path/publish_file/a.txt";
   my $remote_path = "$coll_path/pf_new_full_path_no_meta_no_stamp.txt";
-  is($publisher->publish_file($local_path_a, $remote_path),
+  is($publisher->publish_file($local_path_a, $remote_path)->str(),
      $remote_path,
      'publish_file, full path, no extra metadata, default timestamp');
 
@@ -177,7 +177,8 @@ sub pf_new_full_path_meta_no_stamp {
 
   is($publisher->publish_file($local_path_a, $remote_path,
                               [$extra_avu1, $extra_avu2,
-                               $extra_multival_avu1, $extra_multival_avu2]),
+                               $extra_multival_avu1, $extra_multival_avu2]
+                          )->str(),
      $remote_path,
      'publish_file, full path, extra metadata, default timestamp');
 
@@ -214,7 +215,10 @@ sub pf_new_full_path_no_meta_stamp {
   my $local_path_a = "$tmp_data_path/publish_file/a.txt";
   my $remote_path = "$coll_path/pf_new_full_path_no_meta_stamp.txt";
 
-  is($publisher->publish_file($local_path_a, $remote_path, [], $timestamp),
+  is($publisher->publish_file($local_path_a,
+                              $remote_path,
+                              [],
+                              $timestamp)->str(),
      $remote_path,
      'publish_file, full path, no extra metadata, supplied timestamp');
 
@@ -246,7 +250,7 @@ sub pf_exist_full_path_no_meta_no_stamp_match {
   my $obj = WTSI::NPG::iRODS::DataObject->new($irods, $remote_path);
   ok(!$obj->get_avu($DCTERMS_MODIFIED), 'No modification timestamp before');
 
-  is($publisher->publish_file($local_path_a, $remote_path),
+  is($publisher->publish_file($local_path_a, $remote_path)->str(),
      $remote_path,
      'publish_file, existing full path, MD5 match');
 
@@ -281,7 +285,8 @@ sub pf_exist_full_path_meta_no_stamp_match {
 
   is($publisher->publish_file($local_path_a, $remote_path,
                               [$extra_avu1, $extra_avu2,
-                               $extra_multival_avu1, $extra_multival_avu2]),
+                               $extra_multival_avu1, $extra_multival_avu2]
+                          )->str(),
      $remote_path,
      'publish_file, existing full path, MD5 match');
 
@@ -317,7 +322,7 @@ sub pf_exist_full_path_no_meta_no_stamp_no_match {
   ok(!$obj->get_avu($DCTERMS_MODIFIED), 'No modification timestamp before');
 
   my $local_path_b = "$data_path/publish_file/b.txt";
-  is($publisher->publish_file($local_path_b, $remote_path),
+  is($publisher->publish_file($local_path_b, $remote_path)->str(),
      $remote_path,
      'publish_file, existing full path, MD5 non-match');
 
@@ -348,7 +353,7 @@ sub pf_exist_full_path_meta_no_stamp_no_match {
 
   my $local_path_b = "$data_path/publish_file/b.txt";
   is($publisher->publish_file($local_path_b, $remote_path,
-                              [$extra_avu1, $extra_avu2]),
+                              [$extra_avu1, $extra_avu2])->str(),
      $remote_path,
      'publish_file, existing full path, MD5 non-match');
 
@@ -374,7 +379,7 @@ sub pd_new_full_path_no_meta_no_stamp {
 
   my $remote_path = "$coll_path/pd_new_full_path_no_meta_no_stamp";
   my $sub_coll = "$remote_path/publish_directory";
-  is($publisher->publish_directory($local_path, $remote_path),
+  is($publisher->publish_directory($local_path, $remote_path)->str(),
      $sub_coll,
      'publish_directory, full path, no extra metadata, default timestamp');
 
@@ -404,7 +409,7 @@ sub pd_new_full_path_meta_no_stamp {
   my $remote_path = "$coll_path/pd_new_full_path_meta_no_stamp";
   my $sub_coll = "$remote_path/publish_directory";
   is($publisher->publish_directory($local_path, $remote_path,
-                                   [$extra_avu1, $extra_avu2]),
+                                   [$extra_avu1, $extra_avu2])->str(),
      $sub_coll,
      'publish_directory, full path, no extra metadata, default timestamp');
 
@@ -451,7 +456,7 @@ sub pf_stale_md5_cache {
   print $data_out "extra data\n";
   close $data_out or warn "Failed to close $local_path_c";
 
-  is($publisher->publish_file($local_path_c, $remote_path),
+  is($publisher->publish_file($local_path_c, $remote_path)->str(),
      $remote_path,
      'publish_file, stale MD5 cache');
 

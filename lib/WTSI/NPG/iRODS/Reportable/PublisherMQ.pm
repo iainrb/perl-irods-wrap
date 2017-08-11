@@ -15,11 +15,11 @@ foreach my $name (@REPORTABLE_METHODS) {
     around $name => sub {
         my ($orig, $self, @args) = @_;
  	my $now = $self->rmq_timestamp();
-        my $path = $self->$orig(@args);
+        my $obj = $self->$orig(@args);
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on path ', $path);
-            $self->publish_rmq_message($path, $name, $now);
+            $self->publish_rmq_message($obj, $name, $now);
         }
         return $path;
     };
@@ -48,13 +48,9 @@ sub get_irods_user {
 }
 
 sub get_message_body {
-    my ($self, $path) = @_;
-    return $self->list_path_details($path);
-}
-
-sub list_path_details {
-    my ($self, $path) = @_;
-    return $self->irods->list_path_details($path);
+    my ($self, $obj) = @_;
+    # get JSON representing the iRODS data object or collection
+    return $obj->json();
 }
 
 no Moose::Role;
