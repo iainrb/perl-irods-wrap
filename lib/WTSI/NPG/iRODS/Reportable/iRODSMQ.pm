@@ -90,7 +90,7 @@ before 'remove_object' => sub {
 
 sub get_message_body {
     my ($self, $path) = @_;
-    return $self->list_path_details($path);
+    return encode_json($self->list_path_details($path));
 }
 
 no Moose::Role;
