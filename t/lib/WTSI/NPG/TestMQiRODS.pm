@@ -2,15 +2,17 @@ package WTSI::NPG::TestMQiRODS;
 
 use Moose;
 
-extends 'WTSI::NPG::iRODS';
+use WTSI::NPG::iRODS;
 
-with 'WTSI::NPG::iRODS::Reportable::iRODSMQ';
+extends 'WTSI::NPG::iRODS';
 
 has 'universal_answer' =>
   (is        => 'ro',
    isa       => Int,
    default   => 42,
    documentation => 'Dummy attribute for testing');
+
+with 'WTSI::NPG::iRODS::Reportable::iRODSMQ';
 
 __PACKAGE__->meta->make_immutable;
 
