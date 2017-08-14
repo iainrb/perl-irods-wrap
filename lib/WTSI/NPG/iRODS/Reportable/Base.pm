@@ -56,7 +56,7 @@ sub publish_rmq_message {
     my $headers = $self->_get_headers($body, $name, $now);
     $self->rmq->publish($self->channel,
                         $key,
-                        $response_string,
+                        $body,
                         { exchange => $self->exchange },
                         { headers => $headers },
                     );
