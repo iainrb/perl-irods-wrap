@@ -162,7 +162,8 @@ has '_permissions_cache' =>
 
 
 with 'WTSI::DNAP::Utilities::Loggable',
-     'WTSI::NPG::iRODS::Utilities';
+     'WTSI::NPG::iRODS::Utilities',
+     'WTSI::NPG::iRODS::Reportable::iRODSMQ';
 
 sub BUILD {
   my ($self) = @_;

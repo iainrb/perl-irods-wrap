@@ -6,7 +6,7 @@ our $VERSION = '';
 
 extends 'WTSI::NPG::iRODS';
 
-with qw[WTSI::NPG::iRODS::Reportable::iRODSMQ];
+#with qw[WTSI::NPG::iRODS::Reportable::iRODSMQ];
 
 __PACKAGE__->meta->make_immutable;
 

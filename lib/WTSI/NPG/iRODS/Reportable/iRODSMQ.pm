@@ -11,10 +11,6 @@ with 'WTSI::NPG::iRODS::Reportable::Base';
 requires qw[ensure_collection_path
             ensure_object_path];
 
-# BUILD and DEMOLISH methods required by Reportable::Base are
-# implemented by iRODS.pm.
-
-
 our @REPORTABLE_COLLECTION_METHODS =
     qw[
           add_collection
