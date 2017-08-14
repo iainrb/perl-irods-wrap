@@ -6,7 +6,7 @@ our $VERSION = '';
 
 extends 'WTSI::NPG::iRODS';
 
-#with qw[WTSI::NPG::iRODS::Reportable::iRODSMQ];
+with 'WTSI::NPG::iRODS::Reportable::iRODSMQ';
 
 has 'universal_answer' =>
   (is        => 'ro',
