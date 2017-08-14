@@ -39,8 +39,6 @@ my $publisher_class  = 'WTSI::NPG::TestMQPublisher';
 #my $publisher_class  = 'WTSI::NPG::iRODS::Publisher';
 my $communicator_class = 'WTSI::NPG::RabbitMQ::TestCommunicator';
 
-use Data::Dumper; # FIXME
-
 eval "require $irods_class";
 eval "require $publisher_class";
 eval "require $communicator_class";
@@ -65,17 +63,11 @@ sub setup_test : Test(setup) {
     my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
     # messaging disabled for test setup
-    print STDERR "iRODS class: $irods_class\n";
-
-    my %args = (environment          => \%ENV,
-                strict_baton_version => 0,
-                no_rmq               => 1,);
-    print STDERR Dumper \%args;
-
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  no_rmq               => 1,
-                                 );
+    #my $irods = $irods_class->new(environment          => \%ENV,
+    my $irods = WTSI::NPG::TestMQiRODS->new(environment          => \%ENV,
+                                            strict_baton_version => 0,
+                                            no_rmq               => 1,
+                                        );
     $cwc = $irods->working_collection;
     $irods_tmp_coll =
         $irods->add_collection("PublisherTest.$pid.$test_counter");
