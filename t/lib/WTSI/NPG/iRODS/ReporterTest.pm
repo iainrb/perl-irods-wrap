@@ -68,14 +68,14 @@ sub setup_test : Test(setup) {
                                   #no_rmq               => 1,
                               );
     print STDERR $irods->meta->name."\n";
-
+    print STDERR "ATTRIBUTES:\n";
     for my $attr ( $irods->meta->get_all_attributes ) {
         print STDERR $attr->name, "\n";
     }
-    for my $role ( $irods->meta->calculate_all_roles ) {
+    print STDERR "ROLES:\n";
+    for my $role ( $irods->meta->calculate_all_roles_with_inheritance ) {
         print STDERR $role->name, "\n";
     }
-
 
     $cwc = $irods->working_collection;
     $irods_tmp_coll =
