@@ -63,11 +63,20 @@ sub setup_test : Test(setup) {
     my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
     # messaging disabled for test setup
-    #my $irods = $irods_class->new(environment          => \%ENV,
-    my $irods = WTSI::NPG::TestMQiRODS->new(environment          => \%ENV,
-                                            strict_baton_version => 0,
-                                            no_rmq               => 1,
-                                        );
+    my $irods = $irods_class->new(environment          => \%ENV,
+                                  strict_baton_version => 0,
+                                  #no_rmq               => 1,
+                              );
+    print STDERR $irods->meta->name."\n";
+
+    for my $attr ( $irods->meta->get_all_attributes ) {
+        print STDERR $attr->name, "\n";
+    }
+    for my $role ( $irods->meta->calculate_all_roles ) {
+        print STDERR $role->name, "\n";
+    }
+
+
     $cwc = $irods->working_collection;
     $irods_tmp_coll =
         $irods->add_collection("PublisherTest.$pid.$test_counter");

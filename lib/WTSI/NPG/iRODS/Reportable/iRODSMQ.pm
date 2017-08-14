@@ -11,64 +11,8 @@ with 'WTSI::NPG::iRODS::Reportable::Base';
 requires qw[ensure_collection_path
             ensure_object_path];
 
-# BUILD and DEMOLISH methods required by Reportable::Base are implemented by iRODS.pm. Should be OK, but tests appear to be failing; try copy-pasting methods here.
-
-
-sub BUILD {
-  my ($self) = @_;
-
-  my $installed_baton_version = $self->installed_baton_version;
-
-  if (not $self->match_baton_version($installed_baton_version)) {
-    my $required_range = join q{ - }, $MIN_BATON_VERSION, $MAX_BATON_VERSION;
-    my $msg = sprintf "The installed baton release version %s is " .
-      "not supported by this wrapper (requires version %s)",
-      $installed_baton_version, $required_range;
-
-    if ($self->strict_baton_version) {
-      $self->logdie($msg);
-    }
-    else {
-      $self->warn($msg);
-    }
-  }
-
-  return $self;
-}
-
-
-
-sub DEMOLISH {
-  my ($self, $in_global_destruction) = @_;
-
-  # Only do try to stop cleanly if the object is not already being
-  # destroyed by Perl (as indicated by the flag passed in by Moose).
-  if (not $in_global_destruction) {
-
-    # Stop any active client and log any errors that it encountered
-    # while running. This preempts the client being stopped within its
-    # own destructor and allows our logger to be resonsible for
-    # reporting any errors.
-    #
-    # If stopping were left to the client destructor, Moose would
-    # handle any errors by warning to STDERR instead of using the log.
-    if ($self->has_baton_client) {
-      try {
-        $self->debug("Stopping baton client");
-        my $startable = $self->baton_client;
-
-        my $muffled = Log::Log4perl->get_logger('log4perl.logger.Muffled');
-        $muffled->level($OFF);
-        $startable->logger($muffled);
-        $startable->stop;
-      } catch {
-        $self->error("Failed to stop baton client cleanly: ", $_);
-      };
-    }
-  }
-
-  return;
-}
+# BUILD and DEMOLISH methods required by Reportable::Base are
+# implemented by iRODS.pm.
 
 
 our @REPORTABLE_COLLECTION_METHODS =
