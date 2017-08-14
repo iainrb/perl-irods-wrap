@@ -6,7 +6,7 @@ use Moose::Role;
 
 our $VERSION = '';
 
-with 'WTSI::NPG::iRODS::Reportable::ReportableBase';
+with 'WTSI::NPG::iRODS::Reportable::Base';
 
 our @REPORTABLE_METHODS = qw[publish];
 
