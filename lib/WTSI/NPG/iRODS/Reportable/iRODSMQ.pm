@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use Moose::Role;
 
+use JSON;
+
 our $VERSION = '';
 
 with 'WTSI::NPG::iRODS::Reportable::Base';
