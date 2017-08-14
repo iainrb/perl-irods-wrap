@@ -65,7 +65,7 @@ sub setup_test : Test(setup) {
     # messaging disabled for test setup
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
-                                  #no_rmq               => 1,
+                                  no_rmq               => 1,
                               );
     print STDERR $irods->meta->name."\n";
     print STDERR "ATTRIBUTES:\n";
@@ -130,7 +130,7 @@ sub test_add_collection : Test(14) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
-
+    $irods->rmq_init();
     my $irods_new_coll = $irods_tmp_coll.'/temp';
     $irods->add_collection($irods_new_coll);
 
@@ -142,6 +142,7 @@ sub test_add_collection : Test(14) {
     my $message = shift @messages;
     my $method = 'add_collection';
     _test_collection_message($message, $method);
+    $irods->rmq_disconnect();
 }
 
 sub test_collection_avu : Test(43) {
@@ -153,7 +154,7 @@ sub test_collection_avu : Test(43) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
-
+    $irods->rmq_init();
     $irods->add_collection_avu($irods_tmp_coll, 'colour', 'green');
     $irods->add_collection_avu($irods_tmp_coll, 'colour', 'purple');
     $irods->remove_collection_avu($irods_tmp_coll, 'colour', 'green');
@@ -188,6 +189,7 @@ sub test_collection_avu : Test(43) {
         is_deeply($body->{'avus'}, $expected_avus[$i]);
         $i++;
     }
+    $irods->rmq_disconnect();
 }
 
 sub test_put_move_collection : Test(27) {
@@ -199,7 +201,7 @@ sub test_put_move_collection : Test(27) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
-
+    $irods->rmq_init();
     $irods->put_collection($data_path, $irods_tmp_coll);
     my $dest_coll = $irods_tmp_coll.'/reporter';
     my $moved_coll = $irods_tmp_coll.'/reporter.moved';
@@ -217,6 +219,7 @@ sub test_put_move_collection : Test(27) {
         _test_collection_message($message, $methods[$i]);
         $i++;
     }
+    $irods->rmq_disconnect();
 }
 
 sub test_remove_collection : Test(14) {
@@ -234,6 +237,7 @@ sub test_remove_collection : Test(14) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
+    $irods->rmq_init();
     $irods->remove_collection($irods_new_coll);
     my $subscriber_args = _get_subscriber_args($test_counter);
     my $subscriber = $communicator_class->new($subscriber_args);
@@ -244,6 +248,7 @@ sub test_remove_collection : Test(14) {
     my $message = shift @messages;
     my $method = 'remove_collection';
     _test_collection_message($message, $method);
+    $irods->rmq_disconnect();
 }
 
 sub test_set_collection_permissions : Test(27) {
@@ -254,6 +259,7 @@ sub test_set_collection_permissions : Test(27) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
+    $irods->rmq_init();
     my $user = 'public';
     $irods->set_collection_permissions($WTSI::NPG::iRODS::NULL_PERMISSION,
                                        $user,
@@ -274,6 +280,7 @@ sub test_set_collection_permissions : Test(27) {
     foreach my $message (@messages) {
         _test_collection_message($message, $method);
     }
+    $irods->rmq_disconnect();
 }
 
 
@@ -288,6 +295,7 @@ sub test_add_object : Test(18) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
+    $irods->rmq_init();
     my $added_remote_path = "$irods_tmp_coll/lorem_copy.txt";
     $irods->add_object("$data_path/lorem.txt", $added_remote_path);
 
@@ -309,6 +317,7 @@ sub test_add_object : Test(18) {
            "Collection name is $irods_tmp_coll");
 
     }
+    $irods->rmq_disconnect();
 }
 
 sub test_copy_object : Test(18) {
@@ -320,6 +329,7 @@ sub test_copy_object : Test(18) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                 );
+    $irods->rmq_init();
     my $copied_remote_path = "$irods_tmp_coll/lorem_copy.txt";
     $irods->copy_object($remote_file_path, $copied_remote_path);
 
@@ -338,6 +348,7 @@ sub test_copy_object : Test(18) {
         ok($body->{'collection'} eq $irods_tmp_coll,
            "Collection name is $irods_tmp_coll");
     }
+    $irods->rmq_disconnect();
 }
 
 sub test_move_object : Test(18) {
@@ -349,6 +360,7 @@ sub test_move_object : Test(18) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
+    $irods->rmq_init();
     my $moved_remote_path = "$irods_tmp_coll/lorem_moved.txt";
     $irods->move_object($remote_file_path, $moved_remote_path);
 
@@ -368,6 +380,7 @@ sub test_move_object : Test(18) {
         ok($body->{'collection'} eq $irods_tmp_coll,
            "Collection name is $irods_tmp_coll");
     }
+    $irods->rmq_disconnect();
 }
 
 sub test_object_avu : Test(55) {
@@ -379,7 +392,7 @@ sub test_object_avu : Test(55) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
-
+    $irods->rmq_init();
     $irods->add_object_avu($remote_file_path, 'colour', 'green');
     $irods->add_object_avu($remote_file_path, 'colour', 'purple');
     $irods->remove_object_avu($remote_file_path, 'colour', 'green');
@@ -416,6 +429,7 @@ sub test_object_avu : Test(55) {
            "Collection name is $irods_tmp_coll");
         $i++;
     }
+    $irods->rmq_disconnect();
 }
 
 sub test_remove_object : Test(16) {
@@ -427,6 +441,7 @@ sub test_remove_object : Test(16) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
+    $irods->rmq_init();
     $irods->remove_object($remote_file_path);
     my $subscriber_args = _get_subscriber_args($test_counter);
     my $subscriber = $communicator_class->new($subscriber_args);
@@ -437,6 +452,7 @@ sub test_remove_object : Test(16) {
     my $message = shift @messages;
     my $method = 'remove_object';
     _test_object_message($message, $method);
+    $irods->rmq_disconnect();
 }
 
 sub test_replace_object : Test(18) {
@@ -448,6 +464,7 @@ sub test_replace_object : Test(18) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
+    $irods->rmq_init();
     $irods->replace_object("$data_path/lorem.txt", $remote_file_path);
 
     my $subscriber_args = _get_subscriber_args($test_counter);
@@ -466,6 +483,7 @@ sub test_replace_object : Test(18) {
         ok($body->{'collection'} eq $irods_tmp_coll,
            "Collection name is $irods_tmp_coll");
     }
+    $irods->rmq_disconnect();
 }
 
 sub test_set_object_permissions : Test(31) {
@@ -477,6 +495,7 @@ sub test_set_object_permissions : Test(31) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
+    $irods->rmq_init();
     my $user = 'public';
     $irods->set_object_permissions($WTSI::NPG::iRODS::NULL_PERMISSION,
                                    $user,
@@ -495,6 +514,7 @@ sub test_set_object_permissions : Test(31) {
     foreach my $message (@messages) {
         _test_object_message($message, $method);
     }
+    $irods->rmq_disconnect();
 }
 
 ### methods for the Publisher class ###
@@ -512,6 +532,7 @@ sub test_publish : Test(17) {
         rmq_config_path      => $conf,
         channel              => $test_counter,
     );
+    $publisher->rmq_init();
     my $remote_file_path = "$irods_tmp_coll/ipsum.txt";
     $publisher->publish("$data_path/lorem.txt",
                         $remote_file_path);
@@ -523,7 +544,7 @@ sub test_publish : Test(17) {
     my $message = shift @messages;
     my $method = 'publish';
     _test_object_message($message, $method);
-
+    $publisher->rmq_disconnect();
 }
 
 ### methods for repeated tests ###

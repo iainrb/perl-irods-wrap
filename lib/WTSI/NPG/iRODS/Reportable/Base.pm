@@ -12,11 +12,7 @@ our $VERSION = '';
 
 with 'WTSI::NPG::RabbitMQ::Connectable';
 
-# consuming class must have these methods
-# BUILD and DEMOLISH must be explicitly declared to enable method modifiers
-requires qw[BUILD
-            DEMOLISH
-            get_irods_user
+requires qw[get_irods_user
             get_message_body
        ];
 
@@ -47,28 +43,10 @@ has 'no_rmq' =>
      isa      => 'Bool',
      lazy     => 1,
      builder  => '_build_no_rmq',
-     documentation => 'If true, do not connect to the RabbitMQ server. '.
-         'True by default unless the rmq_config_path attribute in the '.
-         'WTSI::NPG::RabbitMQ::Connectable role is defined.',
+     documentation => 'If true, do not publish messages to the RabbitMQ '.
+         'server. True by default unless the rmq_config_path attribute in '.
+         'the WTSI::NPG::RabbitMQ::Connectable role is defined.',
  );
-
-after 'BUILD' => sub {
-    my ($self, @args) = @_;
-    if (! $self->no_rmq) {
-        $self->rmq_connect();
-        $self->rmq->channel_open($self->channel);
-        $self->debug('Server properties: ',
-                     encode_json($self->rmq->get_server_properties));
-    }
-};
-
-after 'DEMOLISH' => sub {
-    my ($self, @args) = @_;
-    if (! $self->no_rmq) {
-        $self->rmq_disconnect();
-    }
-};
-
 
 sub publish_rmq_message {
     my ($self, $published, $name, $now) = @_;
@@ -87,6 +65,14 @@ sub publish_rmq_message {
     return 1;
 }
 
+sub rmq_init {
+    my ($self, @args) = @_;
+    $self->rmq_connect();
+    $self->rmq->channel_open($self->channel);
+    $self->debug('Server properties: ',
+                 encode_json($self->rmq->get_server_properties));
+    return 1;
+}
 
 sub rmq_timestamp {
     my ($self, ) = @_;
