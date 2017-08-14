@@ -65,7 +65,7 @@ sub setup_test : Test(setup) {
     # messaging disabled for test setup
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
-                                  no_rmq               => 1,
+                                  #no_rmq               => 1,
                               );
     print STDERR $irods->meta->name."\n";
     print STDERR "ATTRIBUTES:\n";
