@@ -76,6 +76,9 @@ sub setup_test : Test(setup) {
     for my $role ( $irods->meta->calculate_all_roles_with_inheritance ) {
         print STDERR $role->name, "\n";
     }
+    my $consumed = $irods->meta->does_role('WTSI::NPG::iRODS::Reportable::iRODSMQ');
+    print STDERR "REPORTABLE: '".$irods->meta->does_role('WTSI::NPG::iRODS::Reportable::iRODSMQ')."'\n";
+    print STDERR "CONNECTABLE: '".$irods->meta->does_role('WTSI::NPG::iRODS::RabbitMQ::Connectable')."'\n";
 
     $cwc = $irods->working_collection;
     $irods_tmp_coll =
