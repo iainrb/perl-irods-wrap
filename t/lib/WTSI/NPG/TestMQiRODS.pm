@@ -2,8 +2,6 @@ package WTSI::NPG::TestMQiRODS;
 
 use Moose;
 
-our $VERSION = '';
-
 extends 'WTSI::NPG::iRODS';
 
 with 'WTSI::NPG::iRODS::Reportable::iRODSMQ';
