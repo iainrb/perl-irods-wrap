@@ -8,7 +8,7 @@ extends 'WTSI::NPG::iRODS';
 
 has 'universal_answer' =>
   (is        => 'ro',
-   isa       => Int,
+   isa       => 'Int',
    default   => 42,
    documentation => 'Dummy attribute for testing');
 

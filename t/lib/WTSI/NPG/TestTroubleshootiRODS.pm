@@ -6,7 +6,7 @@ extends 'WTSI::NPG::iRODS';
 
 has 'identifier' =>
   (is        => 'ro',
-   isa       => Int,
+   isa       => 'Int',
    default   => 1138,
    documentation => 'Dummy attribute for testing');
 
