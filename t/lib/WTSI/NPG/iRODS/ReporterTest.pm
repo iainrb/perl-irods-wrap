@@ -62,6 +62,21 @@ sub setup_test : Test(setup) {
     my $subscriber_args = _get_subscriber_args($test_counter);
     my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
+
+    my $test_irods = WTSI::NPG::TestTroubleshootiRODS->new(
+        environment          => \%ENV,
+        strict_baton_version => 0,
+    );
+    print STDERR $test_irods->meta->name."\n";
+    print STDERR "ATTRIBUTES:\n";
+    for my $attr ( $test_irods->meta->get_all_attributes ) {
+        print STDERR $attr->name, "\n";
+    }
+    print STDERR "ROLES:\n";
+    for my $role ( $test_irods->meta->calculate_all_roles_with_inheritance ) {
+        print STDERR $role->name, "\n";
+    }
+
     # messaging disabled for test setup
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
