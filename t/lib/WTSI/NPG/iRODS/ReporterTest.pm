@@ -10,8 +10,6 @@ use Log::Log4perl;
 use Test::Exception;
 use Test::More;
 
-use Data::Dumper; # FIXME
-
 use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
 
 Log::Log4perl::init('./etc/log4perl_tests.conf');
@@ -38,7 +36,6 @@ my $queue = 'test_irods_data_create_messages';
 
 my $irods_class      = 'WTSI::NPG::TestMQiRODS';
 my $publisher_class  = 'WTSI::NPG::TestMQPublisher';
-#my $publisher_class  = 'WTSI::NPG::iRODS::Publisher';
 my $communicator_class = 'WTSI::NPG::RabbitMQ::TestCommunicator';
 
 eval "require $irods_class";
@@ -48,8 +45,6 @@ eval "require $communicator_class";
 $irods_class->import;
 $publisher_class->import;
 $communicator_class->import;
-
-#use WTSI::NPG::TestTroubleshootiRODS;
 
 
 # Each test has a channel number, equal to $test_counter. The channel
@@ -544,7 +539,7 @@ sub test_set_object_permissions : Test(31) {
 
 ### methods for the Publisher class ###
 
-sub test_publish : Test(17) {
+sub test_publish : Test(14) {
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
                                   no_rmq               => 1,
@@ -569,7 +564,7 @@ sub test_publish : Test(17) {
     my $message = shift @messages;
     print STDERR Dumper $message;
     my $method = 'publish';
-    _test_object_message($message, $method);
+    _test_publisher_message($message, $method);
     $publisher->rmq_disconnect();
 }
 
@@ -604,6 +599,15 @@ sub _test_object_message {
                        avus
                        replicates
                        timestamps];
+    return _test_message($message, $method, \@body_keys);
+}
+
+sub _test_publisher_message {
+     my ($message, $method) = @_;
+    # total tests = 13
+    my @body_keys = qw[collection
+                       data_object
+                       avus];
     return _test_message($message, $method, \@body_keys);
 }
 
