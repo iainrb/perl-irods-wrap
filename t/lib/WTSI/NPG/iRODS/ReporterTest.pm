@@ -47,6 +47,10 @@ $irods_class->import;
 $publisher_class->import;
 $communicator_class->import;
 
+my $dummy_class = 'WTSI::NPG::TestTroubleshootiRODS';
+eval "require $dummy_class";
+$dummy_class->import;
+
 # Each test has a channel number, equal to $test_counter. The channel
 # is used by the publisher (iRODS instance) and subscriber in that test only.
 # Each channel *must* be declared in the RabbitMQ server configuration;
