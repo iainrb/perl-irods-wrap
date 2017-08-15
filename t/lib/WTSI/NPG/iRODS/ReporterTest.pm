@@ -87,19 +87,8 @@ sub setup_test : Test(setup) {
     # messaging disabled for test setup
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
-                                  #no_rmq               => 1,
+                                  no_rmq               => 1,
                               );
-    print STDERR $irods->meta->name."\n";
-    print STDERR "ATTRIBUTES:\n";
-    for my $attr ( $irods->meta->get_all_attributes ) {
-        print STDERR $attr->name, "\n";
-    }
-    print STDERR "ROLES:\n";
-    for my $role ( $irods->meta->calculate_all_roles_with_inheritance ) {
-        print STDERR $role->name, "\n";
-    }
-    print STDERR "REPORTABLE: '".$irods->meta->does_role('WTSI::NPG::iRODS::Reportable::iRODSMQ')."'\n";
-    print STDERR "CONNECTABLE: '".$irods->meta->does_role('WTSI::NPG::iRODS::RabbitMQ::Connectable')."'\n";
 
     $cwc = $irods->working_collection;
     $irods_tmp_coll =
@@ -151,6 +140,23 @@ sub test_add_collection : Test(14) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
+    ######
+
+    print STDERR $irods->meta->name."\n";
+    print STDERR "ATTRIBUTES:\n";
+    for my $attr ( $irods->meta->get_all_attributes ) {
+        print STDERR $attr->name, "\n";
+    }
+    print STDERR "ROLES:\n";
+    for my $role ( $irods->meta->calculate_all_roles_with_inheritance ) {
+        print STDERR $role->name, "\n";
+    }
+    print STDERR "REPORTABLE: '".$irods->meta->does_role('WTSI::NPG::iRODS::Reportable::iRODSMQ')."'\n";
+    my $connectable = $irods->meta->does_role('WTSI::NPG::iRODS::RabbitMQ::Connectable') || 0;
+    print STDERR "CONNECTABLE: '$connectable'\n";
+
+    ######
+
     $irods->rmq_init();
     my $irods_new_coll = $irods_tmp_coll.'/temp';
     $irods->add_collection($irods_new_coll);
