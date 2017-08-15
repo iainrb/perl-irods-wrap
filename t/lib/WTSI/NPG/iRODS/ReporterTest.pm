@@ -49,7 +49,7 @@ $communicator_class->import;
 
 my $dummy_class = 'WTSI::NPG::TestTroubleshootiRODS';
 
-use $dummy_class;
+use WTSI::NPG::TestTroubleshootiRODS;
 
 #eval "require $dummy_class";
 #$dummy_class->import;
