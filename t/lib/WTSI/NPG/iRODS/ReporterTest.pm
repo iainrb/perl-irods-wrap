@@ -62,21 +62,6 @@ sub setup_test : Test(setup) {
     my $subscriber_args = _get_subscriber_args($test_counter);
     my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
-
-    # my $test_irods = WTSI::NPG::TestTroubleshootiRODS->new(
-    #     environment          => \%ENV,
-    #     strict_baton_version => 0,
-    # );
-    # print STDERR $test_irods->meta->name."\n";
-    # print STDERR "ATTRIBUTES:\n";
-    # for my $attr ( $test_irods->meta->get_all_attributes ) {
-    #     print STDERR $attr->name, "\n";
-    # }
-    # print STDERR "ROLES:\n";
-    # for my $role ( $test_irods->meta->calculate_all_roles_with_inheritance ) {
-    #     print STDERR $role->name, "\n";
-    # }
-
     # messaging disabled for test setup
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -133,23 +118,6 @@ sub test_add_collection : Test(14) {
                                   rmq_config_path      => $conf,
                                   channel              => $test_counter,
                                  );
-    ######
-
-    print STDERR $irods->meta->name."\n";
-    print STDERR "ATTRIBUTES:\n";
-    for my $attr ( $irods->meta->get_all_attributes ) {
-        print STDERR $attr->name, "\n";
-    }
-    print STDERR "ROLES:\n";
-    for my $role ( $irods->meta->calculate_all_roles_with_inheritance ) {
-        print STDERR $role->name, "\n";
-    }
-    print STDERR "REPORTABLE: '".$irods->meta->does_role('WTSI::NPG::iRODS::Reportable::iRODSMQ')."'\n";
-    my $connectable = $irods->meta->does_role('WTSI::NPG::RabbitMQ::Connectable') || 0;
-    print STDERR "CONNECTABLE: '$connectable'\n";
-
-    ######
-
     $irods->rmq_init();
     my $irods_new_coll = $irods_tmp_coll.'/temp';
     $irods->add_collection($irods_new_coll);
@@ -562,7 +530,6 @@ sub test_publish : Test(14) {
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
-    print STDERR Dumper $message;
     my $method = 'publish';
     _test_publisher_message($message, $method);
     $publisher->rmq_disconnect();
