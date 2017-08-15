@@ -49,7 +49,9 @@ $communicator_class->import;
 
 my $dummy_class = 'WTSI::NPG::TestTroubleshootiRODS';
 
-eval "require $dummy_class";
+use $dummy_class;
+
+#eval "require $dummy_class";
 #$dummy_class->import;
 
 # Each test has a channel number, equal to $test_counter. The channel
