@@ -58,7 +58,7 @@ sub require : Test(1) {
   require_ok('WTSI::NPG::iRODS::Publisher');
 }
 
-sub publish : Test(6) {
+sub publish : Test(8) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                     strict_baton_version => 0);
 
@@ -66,16 +66,22 @@ sub publish : Test(6) {
 
   my $local_file_path  = "$tmp_data_path/publish/a.txt";
   my $remote_file_path = "$irods_tmp_coll/a.txt";
-  is($publisher->publish($local_file_path, $remote_file_path)->str(),
-     $remote_file_path, 'publish, file');
-  ok($irods->is_object($remote_file_path), 'publish, file -> data object');
+  my $file_pub = $publisher->publish($local_file_path, $remote_file_path);
+  isa_ok($file_pub, 'WTSI::NPG::iRODS::DataObject',
+         'publish, file -> returns a DataObject');
+  is($file_pub->str(), $remote_file_path, 'publish, file -> has remote path');
+  ok($irods->is_object($remote_file_path),
+     'publish, file -> remote path exists on iRODS');
 
   my $local_dir_path  = "$tmp_data_path/publish";
   my $remote_dir_path = $irods_tmp_coll;
-  is($publisher->publish($local_dir_path, $remote_dir_path)->str(),
-     "$remote_dir_path/publish", 'publish, directory');
+  my $dir_pub = $publisher->publish($local_dir_path, $remote_dir_path);
+  isa_ok($dir_pub, 'WTSI::NPG::iRODS::Collection',
+         'publish, directory -> returns a Collection');
+  is($dir_pub->str(), "$remote_dir_path/publish",
+     'publish, directory -> has remote path');
   ok($irods->is_collection("$remote_dir_path/"),
-     'publish, directory -> collection');
+     'publish, directory -> remote path exists on iRODS');
 
   dies_ok {
     $publisher->publish("$tmp_data_path/publish/c.bam",
