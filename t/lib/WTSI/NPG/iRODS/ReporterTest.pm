@@ -507,7 +507,7 @@ sub test_set_object_permissions : Test(31) {
 
 ### methods for the Publisher class ###
 
-sub test_publish : Test(14) {
+sub test_publish_object : Test(14) {
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
                                   no_rmq               => 1,
@@ -525,6 +525,33 @@ sub test_publish : Test(14) {
     $publisher->publish("$data_path/lorem.txt",
                         $remote_file_path);
     ok($irods->is_object($remote_file_path), 'File published to iRODS');
+    my $subscriber_args = _get_subscriber_args($test_counter);
+    my $subscriber = $communicator_class->new($subscriber_args);
+    my @messages = $subscriber->read_all($queue);
+    is(scalar @messages, 1, 'Got 1 message from queue');
+    my $message = shift @messages;
+    my $method = 'publish';
+    _test_publisher_message($message, $method);
+    $publisher->rmq_disconnect();
+}
+
+sub test_publish_collection : Test(14) {
+    my $irods = $irods_class->new(environment          => \%ENV,
+                                  strict_baton_version => 0,
+                                  no_rmq               => 1,
+                                 );
+    my $user = 'public';
+    my $publisher = $publisher_class->new(
+        irods                => $irods,
+        routing_key_prefix   => 'test',
+        hostname             => $test_host,
+        rmq_config_path      => $conf,
+        channel              => $test_counter,
+    );
+    $publisher->rmq_init();
+    my $dest_coll = "$irods_tmp_coll/reporter";
+    $publisher->publish($data_path, $dest_coll);
+    ok($irods->is_collection($dest_coll), 'Collection published to iRODS');
     my $subscriber_args = _get_subscriber_args($test_counter);
     my $subscriber = $communicator_class->new($subscriber_args);
     my @messages = $subscriber->read_all($queue);
