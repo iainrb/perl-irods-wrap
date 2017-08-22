@@ -6,6 +6,9 @@ use Moose::Role;
 
 use JSON;
 
+use WTSI::NPG::iRODS::Collection;
+use WTSI::NPG::iRODS::DataObject;
+
 our $VERSION = '';
 
 with 'WTSI::NPG::iRODS::Reportable::Base';
@@ -44,7 +47,7 @@ foreach my $name (@REPORTABLE_COLLECTION_METHODS) {
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on collection ', $collection);
-            $self->publish_rmq_message($collection, $name, $now);
+            $self->publish_rmq_message($collection->json(), $name, $now);
         }
         return $collection;
     };
@@ -60,7 +63,7 @@ foreach my $name (@REPORTABLE_OBJECT_METHODS) {
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on data object ', $object);
-            $self->publish_rmq_message($object, $name, $now);
+            $self->publish_rmq_message($object->json(), $name, $now);
         }
         return $object;
     };
@@ -70,9 +73,10 @@ foreach my $name (@REPORTABLE_OBJECT_METHODS) {
 before 'remove_collection' => sub {
     my ($self, @args) = @_;
     if (! $self->no_rmq) {
-        my $collection = $self->ensure_collection_path($args[0]);
+        my $path = $self->ensure_collection_path($args[0]);
         my $now = $self->rmq_timestamp();
-        $self->publish_rmq_message($collection, 'remove_collection', $now);
+        my $coll = WTSI::NPG::iRODS::Collection->new($self, $path);
+        $self->publish_rmq_message($coll->json(), 'remove_collection', $now);
     }
 };
 
@@ -83,14 +87,11 @@ before 'remove_object' => sub {
         $self->debug('RabbitMQ reporting for method remove_object',
                      ' on data object ', $object);
         my $now = $self->rmq_timestamp();
-        $self->publish_rmq_message($object, 'remove_object', $now);
+        my $obj = WTSI::NPG::iRODS::DataObject->new($self, $path);
+        $self->publish_rmq_message($obj->json(), 'remove_object', $now);
     }
 };
 
-sub get_message_body {
-    my ($self, $path) = @_;
-    return encode_json($self->list_path_details($path));
-}
 
 no Moose::Role;
 
