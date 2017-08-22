@@ -531,11 +531,11 @@ sub test_publish_object : Test(14) {
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
     my $method = 'publish';
-    _test_publisher_message($message, $method);
+    _test_publisher_object_message($message, $method);
     $publisher->rmq_disconnect();
 }
 
-sub test_publish_collection : Test(14) {
+sub test_publish_collection : Test(13) {
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
                                   no_rmq               => 1,
@@ -558,7 +558,7 @@ sub test_publish_collection : Test(14) {
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
     my $method = 'publish';
-    _test_publisher_message($message, $method);
+    _test_publisher_collection_message($message, $method);
     $publisher->rmq_disconnect();
 }
 
@@ -596,7 +596,15 @@ sub _test_object_message {
     return _test_message($message, $method, \@body_keys);
 }
 
-sub _test_publisher_message {
+sub _test_publisher_collection_message {
+     my ($message, $method) = @_;
+    # total tests = 12
+    my @body_keys = qw[collection
+                       avus];
+    return _test_message($message, $method, \@body_keys);
+}
+
+sub _test_publisher_object_message {
      my ($message, $method) = @_;
     # total tests = 13
     my @body_keys = qw[collection
