@@ -15,22 +15,42 @@ foreach my $name (@REPORTABLE_METHODS) {
     around $name => sub {
         my ($orig, $self, @args) = @_;
  	my $now = $self->rmq_timestamp();
-        my $result = $self->$orig(@args); # DataObject or Collection
+        my $obj = $self->$orig(@args);
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
-                         ' on path ', $result->str() );
-            $self->publish_rmq_message($result->json(), $name, $now);
+                         ' on path ', $obj->str() );
+            $self->publish_rmq_message($obj, $name, $now);
         }
         return $obj;
     };
 
 }
 
-### subroutine required by WTSI::NPG::iRODS::Reportable::Base
+sub BUILD {
+    # BUILD method is required for WTSI::NPG::iRODS::Reportable::Base
+    my ($self) = @_;
+    $self->debug('Initializing Publisher with RabbitMQ reporting');
+    return $self;
+}
+
+sub DEMOLISH {
+    # DEMOLISH method is required for WTSI::NPG::iRODS::Reportable::Base
+    my ($self) = @_;
+    $self->debug('Demolishing Publisher with RabbitMQ reporting');
+    return $self;
+}
+
+### subroutines required by WTSI::NPG::iRODS::Reportable::Base
 
 sub get_irods_user {
     my ($self,) = @_;
     return $self->irods->get_irods_user;
+}
+
+sub get_message_body {
+    my ($self, $obj) = @_;
+    # get JSON representing the iRODS data object or collection
+    return $obj->json();
 }
 
 no Moose::Role;

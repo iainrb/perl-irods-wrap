@@ -110,7 +110,7 @@ sub test_message_queue : Test(2) {
 
 ### collection tests ###
 
-sub test_add_collection : Test(12) {
+sub test_add_collection : Test(14) {
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
                                   routing_key_prefix   => 'test',
@@ -133,7 +133,7 @@ sub test_add_collection : Test(12) {
     $irods->rmq_disconnect();
 }
 
-sub test_collection_avu : Test(37) {
+sub test_collection_avu : Test(43) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -180,7 +180,7 @@ sub test_collection_avu : Test(37) {
     $irods->rmq_disconnect();
 }
 
-sub test_put_move_collection : Test(23) {
+sub test_put_move_collection : Test(27) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -210,7 +210,7 @@ sub test_put_move_collection : Test(23) {
     $irods->rmq_disconnect();
 }
 
-sub test_remove_collection : Test(12) {
+sub test_remove_collection : Test(14) {
     my $irods_no_rmq = $irods_class->new(environment          => \%ENV,
                                          strict_baton_version => 0,
                                          no_rmq               => 1,
@@ -239,7 +239,7 @@ sub test_remove_collection : Test(12) {
     $irods->rmq_disconnect();
 }
 
-sub test_set_collection_permissions : Test(23) {
+sub test_set_collection_permissions : Test(27) {
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
                                   routing_key_prefix   => 'test',
@@ -274,7 +274,7 @@ sub test_set_collection_permissions : Test(23) {
 
 ### data object tests ###
 
-sub test_add_object : Test(16) {
+sub test_add_object : Test(18) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -308,7 +308,7 @@ sub test_add_object : Test(16) {
     $irods->rmq_disconnect();
 }
 
-sub test_copy_object : Test(16) {
+sub test_copy_object : Test(18) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -339,7 +339,7 @@ sub test_copy_object : Test(16) {
     $irods->rmq_disconnect();
 }
 
-sub test_move_object : Test(16) {
+sub test_move_object : Test(18) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -371,7 +371,7 @@ sub test_move_object : Test(16) {
     $irods->rmq_disconnect();
 }
 
-sub test_object_avu : Test(49) {
+sub test_object_avu : Test(55) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -420,7 +420,7 @@ sub test_object_avu : Test(49) {
     $irods->rmq_disconnect();
 }
 
-sub test_remove_object : Test(14) {
+sub test_remove_object : Test(16) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -443,7 +443,7 @@ sub test_remove_object : Test(14) {
     $irods->rmq_disconnect();
 }
 
-sub test_replace_object : Test(16) {
+sub test_replace_object : Test(18) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -474,7 +474,7 @@ sub test_replace_object : Test(16) {
     $irods->rmq_disconnect();
 }
 
-sub test_set_object_permissions : Test(27) {
+sub test_set_object_permissions : Test(31) {
     # change permissions on a data object, with messaging
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -531,7 +531,7 @@ sub test_publish_object : Test(14) {
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
     my $method = 'publish';
-    _test_object_message($message, $method);
+    _test_publisher_object_message($message, $method);
     $publisher->rmq_disconnect();
 }
 
@@ -558,7 +558,7 @@ sub test_publish_collection : Test(13) {
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
     my $method = 'publish';
-    _test_collection_message($message, $method);
+    _test_publisher_collection_message($message, $method);
     $publisher->rmq_disconnect();
 }
 
@@ -576,15 +576,37 @@ sub _get_subscriber_args {
 
 sub _test_collection_message {
     my ($message, $method) = @_;
-    # total tests = 9
+    # total tests = 11
     my @body_keys = qw[collection
-                       avus];
+                       access
+                       avus
+                       timestamps];
     return _test_message($message, $method, \@body_keys);
 }
 
 sub _test_object_message {
     my ($message, $method) = @_;
-    # total tests = 10
+    # total tests = 13
+    my @body_keys = qw[collection
+                       data_object
+                       access
+                       avus
+                       replicates
+                       timestamps];
+    return _test_message($message, $method, \@body_keys);
+}
+
+sub _test_publisher_collection_message {
+     my ($message, $method) = @_;
+    # total tests = 12
+    my @body_keys = qw[collection
+                       avus];
+    return _test_message($message, $method, \@body_keys);
+}
+
+sub _test_publisher_object_message {
+     my ($message, $method) = @_;
+    # total tests = 13
     my @body_keys = qw[collection
                        data_object
                        avus];
@@ -594,7 +616,7 @@ sub _test_object_message {
 sub _test_message {
     my ($message, $method, $body_keys) = @_;
     # total tests = 7 + number of body keys
-    #             = 10 for object, 9 for collection
+    #             = 13 for object, 11 for collection
     my $total_tests = 7 + (scalar @{$body_keys});
 
   SKIP: {
