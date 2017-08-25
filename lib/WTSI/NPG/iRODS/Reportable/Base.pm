@@ -57,7 +57,9 @@ requires qw[get_irods_user];
   Description: Publishes a RabbitMQ message to the channel and exchange
                determined by object attributes.
 
-               The message body argument is decoded as JSON by the 
+               In order to construct message headers, the method attempts
+               to decode the message body string as JSON. If unable to
+               do so, it logs a warning.
 
 =cut
 
