@@ -19,7 +19,7 @@ foreach my $name (@REPORTABLE_METHODS) {
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on path ', $obj->str() );
-            $self->publish_rmq_message($obj, $name, $now);
+            $self->publish_rmq_message($obj->json(), $name, $now);
         }
         return $obj;
     };
@@ -45,12 +45,6 @@ sub DEMOLISH {
 sub get_irods_user {
     my ($self,) = @_;
     return $self->irods->get_irods_user;
-}
-
-sub get_message_body {
-    my ($self, $obj) = @_;
-    # get JSON representing the iRODS data object or collection
-    return $obj->json();
 }
 
 no Moose::Role;

@@ -11,7 +11,9 @@ our $VERSION = '';
 with 'WTSI::NPG::iRODS::Reportable::Base';
 
 requires qw[ensure_collection_path
-            ensure_object_path];
+            ensure_object_path
+            list_path_details
+];
 
 our @REPORTABLE_COLLECTION_METHODS =
     qw[
@@ -44,7 +46,8 @@ foreach my $name (@REPORTABLE_COLLECTION_METHODS) {
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on collection ', $collection);
-            $self->publish_rmq_message($collection, $name, $now);
+            my $body = encode_json($self->list_path_details($collection));
+            $self->publish_rmq_message($body, $name, $now);
         }
         return $collection;
     };
@@ -60,7 +63,8 @@ foreach my $name (@REPORTABLE_OBJECT_METHODS) {
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on data object ', $object);
-            $self->publish_rmq_message($object, $name, $now);
+            my $body = encode_json($self->list_path_details($object));
+            $self->publish_rmq_message($body, $name, $now);
         }
         return $object;
     };
@@ -72,7 +76,8 @@ before 'remove_collection' => sub {
     if (! $self->no_rmq) {
         my $collection = $self->ensure_collection_path($args[0]);
         my $now = $self->rmq_timestamp();
-        $self->publish_rmq_message($collection, 'remove_collection', $now);
+        my $body = encode_json($self->list_path_details($collection));
+        $self->publish_rmq_message($body, 'remove_collection', $now);
     }
 };
 
@@ -83,14 +88,10 @@ before 'remove_object' => sub {
         $self->debug('RabbitMQ reporting for method remove_object',
                      ' on data object ', $object);
         my $now = $self->rmq_timestamp();
-        $self->publish_rmq_message($object, 'remove_object', $now);
+        my $body = encode_json($self->list_path_details($object));
+        $self->publish_rmq_message($body, 'remove_object', $now);
     }
 };
-
-sub get_message_body {
-    my ($self, $path) = @_;
-    return encode_json($self->list_path_details($path));
-}
 
 no Moose::Role;
 

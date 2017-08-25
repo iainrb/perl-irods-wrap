@@ -49,9 +49,7 @@ has 'no_rmq' =>
  );
 
 sub publish_rmq_message {
-    my ($self, $published, $name, $now) = @_;
-    my $body = $self->get_message_body($published);
-    $self->debug('Got message body: ', $body);
+    my ($self, $body, $name, $now) = @_;
     my $key = $self->routing_key_prefix.'.irods.report';
     my $headers = $self->_get_headers($body, $name, $now);
     $self->rmq->publish($self->channel,
