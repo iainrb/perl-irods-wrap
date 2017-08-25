@@ -8,6 +8,8 @@ our $VERSION = '';
 
 with 'WTSI::NPG::iRODS::Reportable::Base';
 
+requires qw[irods];
+
 our @REPORTABLE_METHODS = qw[publish];
 
 foreach my $name (@REPORTABLE_METHODS) {
@@ -24,20 +26,6 @@ foreach my $name (@REPORTABLE_METHODS) {
         return $obj;
     };
 
-}
-
-sub BUILD {
-    # BUILD method is required for WTSI::NPG::iRODS::Reportable::Base
-    my ($self) = @_;
-    $self->debug('Initializing Publisher with RabbitMQ reporting');
-    return $self;
-}
-
-sub DEMOLISH {
-    # DEMOLISH method is required for WTSI::NPG::iRODS::Reportable::Base
-    my ($self) = @_;
-    $self->debug('Demolishing Publisher with RabbitMQ reporting');
-    return $self;
 }
 
 ### subroutines required by WTSI::NPG::iRODS::Reportable::Base

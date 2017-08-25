@@ -7,12 +7,11 @@ use Moose::Role;
 use DateTime;
 use JSON;
 use Time::HiRes qw[gettimeofday];
+use Try::Tiny;
 
 our $VERSION = '';
 
 with 'WTSI::NPG::RabbitMQ::Connectable';
-
-requires qw[get_irods_user];
 
 has 'channel' =>
     (is       => 'ro',
@@ -46,6 +45,22 @@ has 'no_rmq' =>
          'the WTSI::NPG::RabbitMQ::Connectable role is defined.',
  );
 
+requires qw[get_irods_user];
+
+=head2 publish_rmq_message
+
+  Arg [1]    : Message body in JSON string format [Str]
+  Arg [2]    : Method name for header field [Str]
+  Arg [3]    : Timestamp [Str]
+
+  Example    : $irods->publish_rmq_message($body, $name, $now)
+  Description: Publishes a RabbitMQ message to the channel and exchange
+               determined by object attributes.
+
+               The message body argument is decoded as JSON by the 
+
+=cut
+
 sub publish_rmq_message {
     my ($self, $body, $name, $now) = @_;
     my $key = $self->routing_key_prefix.'.irods.report';
@@ -61,14 +76,33 @@ sub publish_rmq_message {
     return 1;
 }
 
+=head2 rmq_init
+
+  Args       : None
+  Example    : $irods->rmq_init()
+  Description: Initialize an RMQ connection by calling the connect
+               method and opening a channel.
+
+=cut
+
 sub rmq_init {
-    my ($self, @args) = @_;
+    my ($self,) = @_;
     $self->rmq_connect();
     $self->rmq->channel_open($self->channel);
     $self->debug('Server properties: ',
                  encode_json($self->rmq->get_server_properties));
     return 1;
 }
+
+=head2 rmq_timestamp
+
+  Args       : None
+  Example    : $irods->rmq_timestamp()
+  Description: Return a timestamp in seconds since the epoch, precise to
+               the microsecond (accuracy depends on the DateTime module).
+  Returntype : Str
+
+=cut
 
 sub rmq_timestamp {
     my ($self, ) = @_;
@@ -77,7 +111,6 @@ sub rmq_timestamp {
     my $decimal_string = sprintf "%06d", $microseconds;
     return $time->iso8601().q{.}.$decimal_string;
 }
-
 
 sub _build_no_rmq {
     my ($self, ) = @_;
@@ -98,7 +131,13 @@ sub _get_headers {
 	irods_user => $irods_user, # iRODS username
         type       => q{},         # file type from metadata, if any
     };
-    my $response = decode_json($body);
+    my $response = {};
+    try {
+        $response = decode_json($body);
+    } catch {
+        $self->warn(q{Unable to decode JSON from message body: '},
+                    $body, q{'});
+    };
     foreach my $avu (@{$response->{'avus'}}) {
         if ($avu->{attribute} eq 'type') {
             $headers->{type} = $avu->{value};
@@ -127,22 +166,6 @@ A Role to enable reporting of method calls to a RabbitMQ message server.
 The consuming class must have the following methods:
 
 =over
-
-=item
-
-BUILD
-
-=item
-
-DEMOLISH
-
-=item
-
-ensure_collection_path
-
-=item
-
-ensure_object_path
 
 =item
 
