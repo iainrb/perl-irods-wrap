@@ -12,9 +12,7 @@ our $VERSION = '';
 
 with 'WTSI::NPG::RabbitMQ::Connectable';
 
-requires qw[get_irods_user
-            get_message_body
-       ];
+requires qw[get_irods_user];
 
 has 'channel' =>
     (is       => 'ro',
