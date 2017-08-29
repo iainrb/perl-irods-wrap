@@ -49,7 +49,7 @@ requires qw[get_irods_user];
 
 =head2 publish_rmq_message
 
-  Arg [1]    : Message body in JSON string format [Str]
+  Arg [1]    : Message body string (JSON HashRef recommended) [Str]
   Arg [2]    : Method name for header field [Str]
   Arg [3]    : Timestamp [Str]
 
@@ -58,8 +58,8 @@ requires qw[get_irods_user];
                determined by object attributes.
 
                In order to construct message headers, the method attempts
-               to decode the message body string as JSON. If unable to
-               do so, it logs a warning.
+               to decode the message body string as a HashRef in JSON format.
+               If unable to do so, it logs a warning.
 
 =cut
 

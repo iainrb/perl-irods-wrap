@@ -86,7 +86,8 @@ sub _build_rmq {
   Args       : None
   Example    : $irods->rmq_connect
   Description: Check connection status; if appropriate, establish a
-               connection to the RabbitMQ server with object parameters.
+               connection to the RabbitMQ server with parameters
+               determined by the object attributes.
 
 =cut
 
@@ -116,10 +117,10 @@ sub rmq_connect {
 }
 
 
-=head2 rmq_connect
+=head2 rmq_disconnect
 
   Args       : None
-  Example    : $irods->rmq_connect
+  Example    : $irods->rmq_disconnect
   Description: Check connection status; if appropriate, disconnect from
                the RabbitMQ server.
 
@@ -145,10 +146,10 @@ sub rmq_disconnect {
     return 1;
 }
 
-=head2 rmq_connect
+=head2 rmq_cluster_name
 
   Args       : None
-  Example    : $irods->rmq_connect
+  Example    : $irods->rmq_cluster_name
   Description: If connected to a RabbitMQ server, return its cluster name;
                otherwise return undef.
   Returntype : Maybe[Str]
