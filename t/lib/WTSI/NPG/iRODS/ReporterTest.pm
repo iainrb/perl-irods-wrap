@@ -531,7 +531,7 @@ sub test_publish_object : Test(14) {
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
     my $method = 'publish';
-    _test_object_message($message, $method);
+    _test_publisher_object_message($message, $method);
     $publisher->rmq_disconnect();
 }
 
@@ -558,7 +558,7 @@ sub test_publish_collection : Test(13) {
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
     my $method = 'publish';
-    _test_collection_message($message, $method);
+    _test_publisher_collection_message($message, $method);
     $publisher->rmq_disconnect();
 }
 
@@ -575,16 +575,38 @@ sub _get_subscriber_args {
 }
 
 sub _test_collection_message {
+    my ($message, $method) = @_;
+    # total tests = 11
+    my @body_keys = qw[collection
+                       access
+                       avus
+                       timestamps];
+    return _test_message($message, $method, \@body_keys);
+}
+
+sub _test_object_message {
+    my ($message, $method) = @_;
+    # total tests = 13
+    my @body_keys = qw[collection
+                       data_object
+                       access
+                       avus
+                       replicates
+                       timestamps];
+    return _test_message($message, $method, \@body_keys);
+}
+
+sub _test_publisher_collection_message {
      my ($message, $method) = @_;
-    # total tests = 9
+    # total tests = 12
     my @body_keys = qw[collection
                        avus];
     return _test_message($message, $method, \@body_keys);
 }
 
-sub _test_object_message {
+sub _test_publisher_object_message {
      my ($message, $method) = @_;
-    # total tests = 10
+    # total tests = 13
     my @body_keys = qw[collection
                        data_object
                        avus];
@@ -594,7 +616,7 @@ sub _test_object_message {
 sub _test_message {
     my ($message, $method, $body_keys) = @_;
     # total tests = 7 + number of body keys
-    #             = 10 for object, 9 for collection
+    #             = 13 for object, 11 for collection
     my $total_tests = 7 + (scalar @{$body_keys});
 
   SKIP: {
