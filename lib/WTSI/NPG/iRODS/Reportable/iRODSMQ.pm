@@ -15,7 +15,6 @@ requires qw[ensure_collection_path
             ensure_object_path
             get_collection_meta
             get_object_meta
-            list_path_details
 ];
 
 our @REPORTABLE_COLLECTION_METHODS =
