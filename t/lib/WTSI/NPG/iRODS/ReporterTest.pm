@@ -561,7 +561,7 @@ sub test_publish_collection : Test(13) {
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
     my $method = 'publish';
-    _test_publisher_collection_message($message, $method);
+    _test_collection_message($message, $method);
     $publisher->rmq_disconnect();
 }
 
@@ -590,14 +590,6 @@ sub _test_object_message {
     # total tests = 10
     my @body_keys = qw[collection
                        data_object
-                       avus];
-    return _test_message($message, $method, \@body_keys);
-}
-
-sub _test_publisher_collection_message {
-     my ($message, $method) = @_;
-    # total tests = 12
-    my @body_keys = qw[collection
                        avus];
     return _test_message($message, $method, \@body_keys);
 }
