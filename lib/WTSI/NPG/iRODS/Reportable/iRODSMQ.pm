@@ -56,7 +56,7 @@ foreach my $name (@REPORTABLE_COLLECTION_METHODS) {
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on collection ', $collection);
-            my $body = encode_json($self->list_path_details($collection));
+            my $body = $self->_get_collection_message_body($collection);
             $self->publish_rmq_message($body, $name, $now);
         }
         return $collection;
@@ -86,7 +86,9 @@ before 'remove_collection' => sub {
     if (! $self->no_rmq) {
         my $collection = $self->ensure_collection_path($args[0]);
         my $now = $self->rmq_timestamp();
-        my $body = encode_json($self->list_path_details($collection));
+	# incorrect closing parenthesis also breaks inheritance!
+	#my $body = $self->_get_collection_message_body($collection));
+	my $body = $self->_get_collection_message_body($collection);
         $self->publish_rmq_message($body, 'remove_collection', $now);
     }
 };

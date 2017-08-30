@@ -110,7 +110,7 @@ sub test_message_queue : Test(2) {
 
 ### collection tests ###
 
-sub test_add_collection : Test(14) {
+sub test_add_collection : Test(12) {
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
                                   routing_key_prefix   => 'test',
@@ -133,7 +133,7 @@ sub test_add_collection : Test(14) {
     $irods->rmq_disconnect();
 }
 
-sub test_collection_avu : Test(43) {
+sub test_collection_avu : Test(37) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -167,20 +167,21 @@ sub test_collection_avu : Test(43) {
     };
     my @expected_avus = (
         [$green],
-        [$purple, $green],
+        [$green, $purple],
         [$purple]
     );
 
     foreach my $message (@messages) {
         my ($body, $headers) = @{$message};
         _test_collection_message($message, $methods[$i]);
-        is_deeply($body->{'avus'}, $expected_avus[$i]);
+	my @avus = $irods->sort_avus(@{$body->{'avus'}});
+        is_deeply(\@avus, $expected_avus[$i]);
         $i++;
     }
     $irods->rmq_disconnect();
 }
 
-sub test_put_move_collection : Test(27) {
+sub test_put_move_collection : Test(23) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -210,7 +211,7 @@ sub test_put_move_collection : Test(27) {
     $irods->rmq_disconnect();
 }
 
-sub test_remove_collection : Test(14) {
+sub test_remove_collection : Test(12) {
     my $irods_no_rmq = $irods_class->new(environment          => \%ENV,
                                          strict_baton_version => 0,
                                          no_rmq               => 1,
@@ -239,7 +240,7 @@ sub test_remove_collection : Test(14) {
     $irods->rmq_disconnect();
 }
 
-sub test_set_collection_permissions : Test(27) {
+sub test_set_collection_permissions : Test(23) {
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
                                   routing_key_prefix   => 'test',
@@ -410,7 +411,7 @@ sub test_object_avu : Test(46) {
         _test_object_message($message, $methods[$i]);
         my ($body, $headers) = @{$message};
         # ensure consistent AVU order
-	my @avus = sort {$a->{'value'} cmp $b->{'value'}} @{$body->{'avus'}};
+	my @avus = $irods->sort_avus(@{$body->{'avus'}});
         is_deeply(\@avus, $expected_avus[$i]);
         # temporary staging object is named lorem.txt.[suffix]
         ok($body->{'data_object'} eq 'lorem.txt',
@@ -578,11 +579,9 @@ sub _get_subscriber_args {
 
 sub _test_collection_message {
     my ($message, $method) = @_;
-    # total tests = 11
+    # total tests = 9
     my @body_keys = qw[collection
-                       access
-                       avus
-                       timestamps];
+                       avus];
     return _test_message($message, $method, \@body_keys);
 }
 
