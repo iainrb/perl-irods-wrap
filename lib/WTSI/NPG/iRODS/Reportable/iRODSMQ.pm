@@ -100,10 +100,9 @@ sub _get_collection_message_body {
     my @avus = $self->get_collection_meta($path);
     # $spec has same data structure as json() method of DataObject
     # TODO also record permissions?
-    #my $spec = { collection  => $path,
-    #             avus        => \@avus,
-    #         };
-    #my $spec = {};
+    my $spec = { collection  => $path,
+                 avus        => \@avus,
+             };
     my $body = encode_json($spec);
     return $body;
 }
