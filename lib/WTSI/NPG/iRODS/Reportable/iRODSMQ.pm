@@ -11,9 +11,18 @@ our $VERSION = '';
 
 with 'WTSI::NPG::iRODS::Reportable::Base';
 
-requires qw[ensure_collection_path
+# commented 'requires' is wrong, but will also break Role inheritance!
+#requires qw[get_collection_meta
+#            get_object_meta
+#            ensure_collection_path
+#            ensure_object_path
+#            cyberdyne_systems_method
+#];
+
+requires qw[get_collection_meta
+            get_object_meta
+            ensure_collection_path
             ensure_object_path
-            list_path_details
 ];
 
 our @REPORTABLE_COLLECTION_METHODS =
