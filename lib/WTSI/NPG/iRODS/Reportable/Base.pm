@@ -175,9 +175,7 @@ get_irods_user
 
 =back
 
-See the WTSI::NPG::iRODS class for examples. The BUILD and DEMOLISH
-methods must be explicitly declared, to enable the method modifiers in
-this Role.
+See the WTSI::NPG::iRODS class for an example.
 
 
 =head2 Test requirements

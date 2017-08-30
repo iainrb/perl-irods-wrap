@@ -597,7 +597,7 @@ sub _test_object_message {
 sub _test_message {
     my ($message, $method, $body_keys) = @_;
     # total tests = 7 + number of body keys
-    #             = 13 for object, 11 for collection
+    #             = 9 for object, 10 for collection
     my $total_tests = 7 + (scalar @{$body_keys});
 
   SKIP: {
