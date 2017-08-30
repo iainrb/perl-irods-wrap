@@ -124,7 +124,6 @@ sub _get_object_message_body {
     my ($obj, $collection, $suffix) = fileparse($path);
     $collection =~ s/\/$//msx; # remove trailing /
     my @avus = $self->get_object_meta($path); # uses metadata cache
-
     # $spec has same data structure as json() method of DataObject
     # TODO also record permissions?
     my $spec = { collection  => $collection,
