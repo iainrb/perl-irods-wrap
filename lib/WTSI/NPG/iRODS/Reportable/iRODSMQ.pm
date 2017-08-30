@@ -11,12 +11,9 @@ our $VERSION = '';
 
 with 'WTSI::NPG::iRODS::Reportable::Base';
 
-requires qw[get_object_avus
-            get_object_meta
-            get_collection_avus
-            get_collection_meta
-            ensure_collection_path
+requires qw[ensure_collection_path
             ensure_object_path
+            list_path_details
 ];
 
 our @REPORTABLE_COLLECTION_METHODS =
@@ -50,7 +47,7 @@ foreach my $name (@REPORTABLE_COLLECTION_METHODS) {
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on collection ', $collection);
-            my $body = $self->_get_collection_message_body($collection);
+            my $body = encode_json($self->list_path_details($collection));
             $self->publish_rmq_message($body, $name, $now);
         }
         return $collection;
@@ -80,7 +77,7 @@ before 'remove_collection' => sub {
     if (! $self->no_rmq) {
         my $collection = $self->ensure_collection_path($args[0]);
         my $now = $self->rmq_timestamp();
-	my $body = $self->_get_collection_message_body($collection);
+        my $body = encode_json($self->list_path_details($collection));
         $self->publish_rmq_message($body, 'remove_collection', $now);
     }
 };
@@ -96,21 +93,6 @@ before 'remove_object' => sub {
         $self->publish_rmq_message($body, 'remove_object', $now);
     }
 };
-
-sub _get_collection_message_body {
-    my ($self, $path) = @_;
-    $path = $self->ensure_collection_path($path); # uses path cache
-    $collection =~ s/\/$//msx; # remove trailing /
-    my @avus = $self->get_collection_meta($path);
-
-    # $spec has same data structure as json() method of DataObject
-    # TODO also record permissions?
-    my $spec = { collection  => $collection,
-                 avus        => \@avus,
-             };
-    my $body = encode_json($spec);
-    return $body;
-}
 
 sub _get_object_message_body {
     my ($self, $path) = @_;
