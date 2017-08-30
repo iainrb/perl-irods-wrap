@@ -94,6 +94,20 @@ before 'remove_object' => sub {
     }
 };
 
+sub _get_collection_message_body {
+    my ($self, $path) = @_;
+    $path = $self->ensure_collection_path($path);
+    my @avus = $self->get_collection_meta($path);
+    # $spec has same data structure as json() method of DataObject
+    # TODO also record permissions?
+    #my $spec = { collection  => $path,
+    #             avus        => \@avus,
+    #         };
+    #my $spec = {};
+    my $body = encode_json($spec);
+    return $body;
+}
+
 sub _get_object_message_body {
     my ($self, $path) = @_;
     $path = $self->ensure_object_path($path); # uses path cache
