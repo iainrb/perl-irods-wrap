@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Moose::Role;
 
+use File::Basename qw[fileparse];
 use JSON;
 
 our $VERSION = '';
@@ -63,7 +64,7 @@ foreach my $name (@REPORTABLE_OBJECT_METHODS) {
         if (! $self->no_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on data object ', $object);
-            my $body = encode_json($self->list_path_details($object));
+	    my $body = $self->_get_object_message_body($object);
             $self->publish_rmq_message($body, $name, $now);
         }
         return $object;
@@ -88,10 +89,27 @@ before 'remove_object' => sub {
         $self->debug('RabbitMQ reporting for method remove_object',
                      ' on data object ', $object);
         my $now = $self->rmq_timestamp();
-        my $body = encode_json($self->list_path_details($object));
+	my $body = $self->_get_object_message_body($object);
         $self->publish_rmq_message($body, 'remove_object', $now);
     }
 };
+
+sub _get_object_message_body {
+    my ($self, $path) = @_;
+    $path = $self->ensure_object_path($path); # uses path cache
+    my ($obj, $collection, $suffix) = fileparse($path);
+    $collection =~ s/\/$//msx; # remove trailing /
+    my @avus = $self->get_object_meta($path); # uses metadata cache
+
+    # $spec has same data structure as json() method of DataObject
+    # TODO also record permissions?
+    my $spec = { collection  => $collection,
+                 data_object => $obj,
+                 avus        => \@avus,
+             };
+    my $body = encode_json($spec);
+    return $body;
+}
 
 no Moose::Role;
 

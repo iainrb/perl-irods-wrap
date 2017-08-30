@@ -274,7 +274,7 @@ sub test_set_collection_permissions : Test(27) {
 
 ### data object tests ###
 
-sub test_add_object : Test(18) {
+sub test_add_object : Test(15) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -308,7 +308,7 @@ sub test_add_object : Test(18) {
     $irods->rmq_disconnect();
 }
 
-sub test_copy_object : Test(18) {
+sub test_copy_object : Test(15) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -339,7 +339,7 @@ sub test_copy_object : Test(18) {
     $irods->rmq_disconnect();
 }
 
-sub test_move_object : Test(18) {
+sub test_move_object : Test(15) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -371,7 +371,7 @@ sub test_move_object : Test(18) {
     $irods->rmq_disconnect();
 }
 
-sub test_object_avu : Test(55) {
+sub test_object_avu : Test(46) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -402,14 +402,16 @@ sub test_object_avu : Test(55) {
     };
     my @expected_avus = (
         [$green],
-        [$purple, $green],
+        [$green, $purple],
         [$purple]
     );
 
     foreach my $message (@messages) {
         _test_object_message($message, $methods[$i]);
         my ($body, $headers) = @{$message};
-        is_deeply($body->{'avus'}, $expected_avus[$i]);
+        # ensure consistent AVU order
+	my @avus = sort {$a->{'value'} cmp $b->{'value'}} @{$body->{'avus'}};
+        is_deeply(\@avus, $expected_avus[$i]);
         # temporary staging object is named lorem.txt.[suffix]
         ok($body->{'data_object'} eq 'lorem.txt',
            'Data object name is lorem.txt');
@@ -420,7 +422,7 @@ sub test_object_avu : Test(55) {
     $irods->rmq_disconnect();
 }
 
-sub test_remove_object : Test(16) {
+sub test_remove_object : Test(13) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -443,7 +445,7 @@ sub test_remove_object : Test(16) {
     $irods->rmq_disconnect();
 }
 
-sub test_replace_object : Test(18) {
+sub test_replace_object : Test(15) {
 
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -474,7 +476,7 @@ sub test_replace_object : Test(18) {
     $irods->rmq_disconnect();
 }
 
-sub test_set_object_permissions : Test(31) {
+sub test_set_object_permissions : Test(25) {
     # change permissions on a data object, with messaging
     my $irods = $irods_class->new(environment          => \%ENV,
                                   strict_baton_version => 0,
@@ -531,7 +533,7 @@ sub test_publish_object : Test(14) {
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
     my $method = 'publish';
-    _test_publisher_object_message($message, $method);
+    _test_object_message($message, $method);
     $publisher->rmq_disconnect();
 }
 
@@ -586,13 +588,10 @@ sub _test_collection_message {
 
 sub _test_object_message {
     my ($message, $method) = @_;
-    # total tests = 13
+    # total tests = 10
     my @body_keys = qw[collection
                        data_object
-                       access
-                       avus
-                       replicates
-                       timestamps];
+                       avus];
     return _test_message($message, $method, \@body_keys);
 }
 
@@ -600,15 +599,6 @@ sub _test_publisher_collection_message {
      my ($message, $method) = @_;
     # total tests = 12
     my @body_keys = qw[collection
-                       avus];
-    return _test_message($message, $method, \@body_keys);
-}
-
-sub _test_publisher_object_message {
-     my ($message, $method) = @_;
-    # total tests = 13
-    my @body_keys = qw[collection
-                       data_object
                        avus];
     return _test_message($message, $method, \@body_keys);
 }
