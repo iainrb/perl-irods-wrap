@@ -11,14 +11,6 @@ our $VERSION = '';
 
 with 'WTSI::NPG::iRODS::Reportable::Base';
 
-# commented 'requires' is wrong, but will also break Role inheritance!
-#requires qw[get_collection_meta
-#            get_object_meta
-#            ensure_collection_path
-#            ensure_object_path
-#            cyberdyne_systems_method
-#];
-
 requires qw[get_collection_meta
             get_object_meta
             ensure_collection_path
@@ -86,8 +78,6 @@ before 'remove_collection' => sub {
     if (! $self->no_rmq) {
         my $collection = $self->ensure_collection_path($args[0]);
         my $now = $self->rmq_timestamp();
-	# incorrect closing parenthesis also breaks inheritance!
-	#my $body = $self->_get_collection_message_body($collection));
 	my $body = $self->_get_collection_message_body($collection);
         $self->publish_rmq_message($body, 'remove_collection', $now);
     }
