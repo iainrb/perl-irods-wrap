@@ -130,7 +130,7 @@ sub _get_headers {
         method     => $name,       # name of Moose method called
         timestamp  => $time,       # time immediately before method call
         user       => $ENV{USER},  # OS username (may differ from irods_user)
-	irods_user => $irods_user, # iRODS username
+    irods_user => $irods_user, # iRODS username
         type       => q{},         # file type from metadata, if any
     };
     my $response = {};
