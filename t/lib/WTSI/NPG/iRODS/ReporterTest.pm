@@ -16,6 +16,10 @@ Log::Log4perl::init('./etc/log4perl_tests.conf');
 
 my $log = Log::Log4perl::get_logger();
 
+use WTSI::NPG::TestMQiRODS;
+use WTSI::NPG::TestMQPublisher;
+use WTSI::NPG::RabbitMQ::TestCommunicator;
+
 my $pid          = $PID;
 my $test_counter = 0;
 my $data_path    = './t/data/reporter';
@@ -34,19 +38,6 @@ my $test_host = $ENV{'NPG_RMQ_HOST'} || 'localhost';
 my $conf = $ENV{'NPG_RMQ_CONFIG'} || './etc/rmq_test_config.json';
 my $queue = 'test_irods_data_create_messages';
 
-my $irods_class      = 'WTSI::NPG::TestMQiRODS';
-my $publisher_class  = 'WTSI::NPG::TestMQPublisher';
-my $communicator_class = 'WTSI::NPG::RabbitMQ::TestCommunicator';
-
-eval "require $irods_class";
-eval "require $publisher_class";
-eval "require $communicator_class";
-
-$irods_class->import;
-$publisher_class->import;
-$communicator_class->import;
-
-
 # Each test has a channel number, equal to $test_counter. The channel
 # is used by the publisher (iRODS instance) and subscriber in that test only.
 # Each channel *must* be declared in the RabbitMQ server configuration;
@@ -59,14 +50,14 @@ sub setup_test : Test(setup) {
     # (Assigning a unique queue name would need reconfiguration of the
     # RabbitMQ test server.)
     $test_counter++;
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     # messaging disabled for test setup
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  no_rmq               => 1,
-                              );
+    my $irods = WTSI::NPG::TestMQiRODS->new(environment          => \%ENV,
+					    strict_baton_version => 0,
+					    no_rmq               => 1,
+					   );
 
     $cwc = $irods->working_collection;
     $irods_tmp_coll =
@@ -77,10 +68,10 @@ sub setup_test : Test(setup) {
 
 sub teardown_test : Test(teardown) {
     # messaging disabled for test teardown
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  no_rmq               => 1,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new(environment          => \%ENV,
+					    strict_baton_version => 0,
+					    no_rmq               => 1,
+					   );
     $irods->working_collection($cwc);
     $irods->remove_collection($irods_tmp_coll);
 }
@@ -91,8 +82,8 @@ sub require : Test(1) {
 
 sub test_message_queue : Test(2) {
     # ensure the test message queue is working correctly
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber =  WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my $body = ["Hello, world!", ];
     $subscriber->publish(encode_json($body),
                          'npg.gateway',
@@ -111,19 +102,20 @@ sub test_message_queue : Test(2) {
 ### collection tests ###
 
 sub test_add_collection : Test(12) {
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  routing_key_prefix   => 'test',
-                                  hostname             => $test_host,
-                                  rmq_config_path      => $conf,
-                                  channel              => $test_counter,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $irods->rmq_init();
     my $irods_new_coll = $irods_tmp_coll.'/temp';
     $irods->add_collection($irods_new_coll);
 
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
 
@@ -135,20 +127,21 @@ sub test_add_collection : Test(12) {
 
 sub test_collection_avu : Test(37) {
 
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  routing_key_prefix   => 'test',
-                                  hostname             => $test_host,
-                                  rmq_config_path      => $conf,
-                                  channel              => $test_counter,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $irods->rmq_init();
     $irods->add_collection_avu($irods_tmp_coll, 'colour', 'green');
     $irods->add_collection_avu($irods_tmp_coll, 'colour', 'purple');
     $irods->remove_collection_avu($irods_tmp_coll, 'colour', 'green');
 
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 3, 'Got 3 messages from queue');
 
@@ -183,21 +176,22 @@ sub test_collection_avu : Test(37) {
 
 sub test_put_move_collection : Test(23) {
 
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  routing_key_prefix   => 'test',
-                                  hostname             => $test_host,
-                                  rmq_config_path      => $conf,
-                                  channel              => $test_counter,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $irods->rmq_init();
     $irods->put_collection($data_path, $irods_tmp_coll);
     my $dest_coll = $irods_tmp_coll.'/reporter';
     my $moved_coll = $irods_tmp_coll.'/reporter.moved';
     $irods->move_collection($dest_coll, $moved_coll);
 
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 2, 'Got 2 messages from queue');
 
@@ -212,24 +206,26 @@ sub test_put_move_collection : Test(23) {
 }
 
 sub test_remove_collection : Test(12) {
-    my $irods_no_rmq = $irods_class->new(environment          => \%ENV,
-                                         strict_baton_version => 0,
-                                         no_rmq               => 1,
-                                        );
+    my $irods_no_rmq = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       no_rmq               => 1,
+      );
     my $irods_new_coll = $irods_tmp_coll.'/temp';
     $irods_no_rmq->add_collection($irods_new_coll);
 
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  routing_key_prefix   => 'test',
-                                  hostname             => $test_host,
-                                  rmq_config_path      => $conf,
-                                  channel              => $test_counter,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $irods->rmq_init();
     $irods->remove_collection($irods_new_coll);
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
 
     is(scalar @messages, 1, 'Got 1 message from queue');
@@ -241,13 +237,14 @@ sub test_remove_collection : Test(12) {
 }
 
 sub test_set_collection_permissions : Test(23) {
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  routing_key_prefix   => 'test',
-                                  hostname             => $test_host,
-                                  rmq_config_path      => $conf,
-                                  channel              => $test_counter,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $irods->rmq_init();
     my $user = 'public';
     $irods->set_collection_permissions($WTSI::NPG::iRODS::NULL_PERMISSION,
@@ -259,8 +256,8 @@ sub test_set_collection_permissions : Test(23) {
                                        $irods_tmp_coll,
                                    );
 
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 2, 'Got 2 messages from queue');
 
@@ -277,19 +274,20 @@ sub test_set_collection_permissions : Test(23) {
 
 sub test_add_object : Test(15) {
 
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  routing_key_prefix   => 'test',
-                                  hostname             => $test_host,
-                                  rmq_config_path      => $conf,
-                                  channel              => $test_counter,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $irods->rmq_init();
     my $added_remote_path = "$irods_tmp_coll/lorem_copy.txt";
     $irods->add_object("$data_path/lorem.txt", $added_remote_path);
 
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
 
     is(scalar @messages, 1, 'Got 1 message from queue');
@@ -311,19 +309,20 @@ sub test_add_object : Test(15) {
 
 sub test_copy_object : Test(15) {
 
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  routing_key_prefix   => 'test',
-                                  hostname             => $test_host,
-                                  rmq_config_path      => $conf,
-                                  channel              => $test_counter,
-                                );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $irods->rmq_init();
     my $copied_remote_path = "$irods_tmp_coll/lorem_copy.txt";
     $irods->copy_object($remote_file_path, $copied_remote_path);
 
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
 
@@ -342,19 +341,20 @@ sub test_copy_object : Test(15) {
 
 sub test_move_object : Test(15) {
 
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  routing_key_prefix   => 'test',
-                                  hostname             => $test_host,
-                                  rmq_config_path      => $conf,
-                                  channel              => $test_counter,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $irods->rmq_init();
     my $moved_remote_path = "$irods_tmp_coll/lorem_moved.txt";
     $irods->move_object($remote_file_path, $moved_remote_path);
 
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
 
@@ -374,20 +374,21 @@ sub test_move_object : Test(15) {
 
 sub test_object_avu : Test(46) {
 
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  routing_key_prefix   => 'test',
-                                  hostname             => $test_host,
-                                  rmq_config_path      => $conf,
-                                  channel              => $test_counter,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $irods->rmq_init();
     $irods->add_object_avu($remote_file_path, 'colour', 'green');
     $irods->add_object_avu($remote_file_path, 'colour', 'purple');
     $irods->remove_object_avu($remote_file_path, 'colour', 'green');
 
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 3, 'Got 3 messages from queue');
 
@@ -425,17 +426,18 @@ sub test_object_avu : Test(46) {
 
 sub test_remove_object : Test(13) {
 
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  routing_key_prefix   => 'test',
-                                  hostname             => $test_host,
-                                  rmq_config_path      => $conf,
-                                  channel              => $test_counter,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $irods->rmq_init();
     $irods->remove_object($remote_file_path);
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
 
     is(scalar @messages, 1, 'Got 1 message from queue');
@@ -448,18 +450,19 @@ sub test_remove_object : Test(13) {
 
 sub test_replace_object : Test(15) {
 
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  routing_key_prefix   => 'test',
-                                  hostname             => $test_host,
-                                  rmq_config_path      => $conf,
-                                  channel              => $test_counter,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $irods->rmq_init();
     $irods->replace_object("$data_path/lorem.txt", $remote_file_path);
 
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
 
@@ -479,13 +482,14 @@ sub test_replace_object : Test(15) {
 
 sub test_set_object_permissions : Test(25) {
     # change permissions on a data object, with messaging
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  routing_key_prefix   => 'test',
-                                  hostname             => $test_host,
-                                  rmq_config_path      => $conf,
-                                  channel              => $test_counter,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $irods->rmq_init();
     my $user = 'public';
     $irods->set_object_permissions($WTSI::NPG::iRODS::NULL_PERMISSION,
@@ -496,8 +500,8 @@ sub test_set_object_permissions : Test(25) {
                                    $user,
                                    $remote_file_path,
                                );
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 2, 'Got 2 messages from queue');
     my $method = 'set_object_permissions';
@@ -511,25 +515,27 @@ sub test_set_object_permissions : Test(25) {
 ### methods for the Publisher class ###
 
 sub test_publish_object : Test(14) {
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  no_rmq               => 1,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       no_rmq               => 1,
+      );
     my $user = 'public';
-    my $publisher = $publisher_class->new(
-        irods                => $irods,
-        routing_key_prefix   => 'test',
-        hostname             => $test_host,
-        rmq_config_path      => $conf,
-        channel              => $test_counter,
-    );
+    my $publisher = WTSI::NPG::TestMQPublisher->new
+      (
+       irods                => $irods,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $publisher->rmq_init();
     my $remote_file_path = "$irods_tmp_coll/ipsum.txt";
     $publisher->publish("$data_path/lorem.txt",
                         $remote_file_path);
     ok($irods->is_object($remote_file_path), 'File published to iRODS');
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
@@ -539,24 +545,26 @@ sub test_publish_object : Test(14) {
 }
 
 sub test_publish_collection : Test(13) {
-    my $irods = $irods_class->new(environment          => \%ENV,
-                                  strict_baton_version => 0,
-                                  no_rmq               => 1,
-                                 );
+    my $irods = WTSI::NPG::TestMQiRODS->new
+      (environment          => \%ENV,
+       strict_baton_version => 0,
+       no_rmq               => 1,
+      );
     my $user = 'public';
-    my $publisher = $publisher_class->new(
-        irods                => $irods,
-        routing_key_prefix   => 'test',
-        hostname             => $test_host,
-        rmq_config_path      => $conf,
-        channel              => $test_counter,
-    );
+    my $publisher = WTSI::NPG::TestMQPublisher->new
+      (
+       irods                => $irods,
+       routing_key_prefix   => 'test',
+       hostname             => $test_host,
+       rmq_config_path      => $conf,
+       channel              => $test_counter,
+      );
     $publisher->rmq_init();
     my $dest_coll = "$irods_tmp_coll/reporter";
     $publisher->publish($data_path, $dest_coll);
     ok($irods->is_collection($dest_coll), 'Collection published to iRODS');
-    my $subscriber_args = _get_subscriber_args($test_counter);
-    my $subscriber = $communicator_class->new($subscriber_args);
+    my $args = _get_subscriber_args($test_counter);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
