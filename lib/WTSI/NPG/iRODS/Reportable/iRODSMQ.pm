@@ -45,7 +45,7 @@ foreach my $name (@REPORTABLE_COLLECTION_METHODS) {
         my ($orig, $self, @args) = @_;
     my $now = $self->rmq_timestamp();
         my $collection = $self->$orig(@args);
-        if (! $self->no_rmq) {
+        if ($self->enable_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on collection ', $collection);
             my $body = $self->_get_collection_message_body($collection);
@@ -62,7 +62,7 @@ foreach my $name (@REPORTABLE_OBJECT_METHODS) {
         my ($orig, $self, @args) = @_;
     my $now = $self->rmq_timestamp();
         my $object = $self->$orig(@args);
-        if (! $self->no_rmq) {
+        if ($self->enable_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on data object ', $object);
         my $body = $self->_get_object_message_body($object);
@@ -75,7 +75,7 @@ foreach my $name (@REPORTABLE_OBJECT_METHODS) {
 
 before 'remove_collection' => sub {
     my ($self, @args) = @_;
-    if (! $self->no_rmq) {
+    if ($self->enable_rmq) {
         my $collection = $self->ensure_collection_path($args[0]);
         my $now = $self->rmq_timestamp();
     my $body = $self->_get_collection_message_body($collection);
@@ -85,7 +85,7 @@ before 'remove_collection' => sub {
 
 before 'remove_object' => sub {
     my ($self, @args) = @_;
-    if (! $self->no_rmq) {
+    if ($self->enable_rmq) {
         my $object = $self->ensure_object_path($args[0]);
         $self->debug('RabbitMQ reporting for method remove_object',
                      ' on data object ', $object);

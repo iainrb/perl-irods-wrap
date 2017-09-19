@@ -56,7 +56,7 @@ sub setup_test : Test(setup) {
     # messaging disabled for test setup
     my $irods = WTSI::NPG::iRODSMQTest->new(environment          => \%ENV,
 					    strict_baton_version => 0,
-					    no_rmq               => 1,
+					    enable_rmq           => 0,
 					   );
 
     $cwc = $irods->working_collection;
@@ -70,7 +70,7 @@ sub teardown_test : Test(teardown) {
     # messaging disabled for test teardown
     my $irods = WTSI::NPG::iRODSMQTest->new(environment          => \%ENV,
 					    strict_baton_version => 0,
-					    no_rmq               => 1,
+					    enable_rmq           => 0,
 					   );
     $irods->working_collection($cwc);
     $irods->remove_collection($irods_tmp_coll);
@@ -209,7 +209,7 @@ sub test_remove_collection : Test(12) {
     my $irods_no_rmq = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
-       no_rmq               => 1,
+       enable_rmq           => 0,
       );
     my $irods_new_coll = $irods_tmp_coll.'/temp';
     $irods_no_rmq->add_collection($irods_new_coll);
@@ -518,7 +518,7 @@ sub test_publish_object : Test(14) {
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
-       no_rmq               => 1,
+       enable_rmq           => 0,
       );
     my $user = 'public';
     my $publisher = WTSI::NPG::PublisherMQTest->new
@@ -548,7 +548,7 @@ sub test_publish_collection : Test(13) {
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
-       no_rmq               => 1,
+       enable_rmq           => 0,
       );
     my $user = 'public';
     my $publisher = WTSI::NPG::PublisherMQTest->new
