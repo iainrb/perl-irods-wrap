@@ -603,33 +603,38 @@ sub _test_object_message {
 }
 
 sub _test_message {
-    my ($message, $method, $body_keys) = @_;
-    # total tests = 7 + number of body keys
-    #             = 9 for object, 10 for collection
-    my $total_tests = 7 + (scalar @{$body_keys});
+  my ($message, $method, $body_keys) = @_;
+  # total tests = 7 + number of body keys
+  #             = 9 for object, 10 for collection
+  my $total_tests = 7 + (scalar @{$body_keys});
 
-  SKIP: {
-        skip "RabbitMQ message not defined", $total_tests if not defined($message);
-        my ($body, $headers) = @{$message};
-        my @body_keys = @{$body_keys};
-        my $expected_body_obj = scalar @body_keys;
-        ok(scalar keys(%{$headers}) == $expected_headers,
-           'Found '.$expected_headers.' header key/value pairs.');
-        ok(scalar keys(%{$body}) == $expected_body_obj,
-           'Found '.$expected_body_obj.' body key/value pairs.');
-        ok($headers->{'method'} eq $method, 'Method name is '.$method);
-        my $time = $headers->{'timestamp'};
-        ok($time =~ /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}/msx,
-           "Header timestamp '$time' is in correct format");
-        foreach my $key (@header_keys) {
-            ok(defined $headers->{$key},
-               'Value defined in message header for '.$key);
-        }
-        foreach my $key (@body_keys) {
-            ok(defined $body->{$key},
-               'Value defined in message body for '.$key);
-        }
+  my $skip = not defined($message);
+  if ($skip) {
+    $log->logwarn('Unexpectedly got an undefined message from RabbitMQ; ',
+		  'skipping subsequent tests on content of the message');
+  }
+ SKIP: {
+    skip "RabbitMQ message not defined", $total_tests if $skip;
+    my ($body, $headers) = @{$message};
+    my @body_keys = @{$body_keys};
+    my $expected_body_obj = scalar @body_keys;
+    ok(scalar keys(%{$headers}) == $expected_headers,
+       'Found '.$expected_headers.' header key/value pairs.');
+    ok(scalar keys(%{$body}) == $expected_body_obj,
+       'Found '.$expected_body_obj.' body key/value pairs.');
+    ok($headers->{'method'} eq $method, 'Method name is '.$method);
+    my $time = $headers->{'timestamp'};
+    ok($time =~ /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}/msx,
+       "Header timestamp '$time' is in correct format");
+    foreach my $key (@header_keys) {
+      ok(defined $headers->{$key},
+	 'Value defined in message header for '.$key);
     }
+    foreach my $key (@body_keys) {
+      ok(defined $body->{$key},
+	 'Value defined in message body for '.$key);
+    }
+  }
 }
 
 1;
