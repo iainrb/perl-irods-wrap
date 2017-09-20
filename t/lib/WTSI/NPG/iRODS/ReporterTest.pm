@@ -16,6 +16,9 @@ Log::Log4perl::init('./etc/log4perl_tests.conf');
 
 my $log = Log::Log4perl::get_logger();
 
+use WTSI::NPG::iRODS::Collection;
+use WTSI::NPG::iRODS::DataObject;
+
 use WTSI::NPG::iRODSMQTest;
 use WTSI::NPG::PublisherMQTest;
 use WTSI::NPG::RabbitMQ::TestCommunicator;
@@ -31,6 +34,7 @@ my @header_keys = qw[timestamp
                      method];
 my $expected_headers = scalar @header_keys;
 
+my $test_filename = 'lorem.txt';
 my $irods_tmp_coll;
 my $remote_file_path;
 my $cwc;
@@ -62,8 +66,8 @@ sub setup_test : Test(setup) {
     $cwc = $irods->working_collection;
     $irods_tmp_coll =
         $irods->add_collection("PublisherTest.$pid.$test_counter");
-    $remote_file_path = "$irods_tmp_coll/lorem.txt";
-    $irods->add_object("$data_path/lorem.txt", $remote_file_path);
+    $remote_file_path = "$irods_tmp_coll/$test_filename";
+    $irods->add_object("$data_path/$test_filename", $remote_file_path);
 }
 
 sub teardown_test : Test(teardown) {
@@ -101,7 +105,7 @@ sub test_message_queue : Test(2) {
 
 ### collection tests ###
 
-sub test_add_collection : Test(12) {
+sub test_add_collection : Test(10) {
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -121,11 +125,14 @@ sub test_add_collection : Test(12) {
 
     my $message = shift @messages;
     my $method = 'add_collection';
-    _test_collection_message($message, $method);
+    my $body = {avus       => [],
+		collection => $irods_new_coll,
+	       };
+    _test_collection_message($message, $method, $body, $irods); # 9
     $irods->rmq_disconnect();
 }
 
-sub test_collection_avu : Test(37) {
+sub test_collection_avu : Test(28) {
 
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
@@ -143,13 +150,12 @@ sub test_collection_avu : Test(37) {
     my $args = _get_subscriber_args($test_counter);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
-    is(scalar @messages, 3, 'Got 3 messages from queue');
+    my $expected_messages = 3;
+    is(scalar @messages, $expected_messages, 'Got 3 messages from queue');
 
     my @methods = qw[add_collection_avu
                      add_collection_avu
                      remove_collection_avu];
-    my $i = 0;
-
     my $purple =  {
         'attribute' => 'colour',
         'value' => 'purple'
@@ -163,18 +169,19 @@ sub test_collection_avu : Test(37) {
         [$green, $purple],
         [$purple]
     );
-
-    foreach my $message (@messages) {
-        my ($body, $headers) = @{$message};
-        _test_collection_message($message, $methods[$i]);
-	my @avus = $irods->sort_avus(@{$body->{'avus'}});
-        is_deeply(\@avus, $expected_avus[$i]);
+    my $i = 0;
+    while ($i < $expected_messages ) {
+	my $body = {avus       => $expected_avus[$i],
+		    collection => $irods_tmp_coll,
+	       };
+        _test_collection_message($messages[$i], $methods[$i], $body, $irods);
+	# 9 tests
         $i++;
     }
     $irods->rmq_disconnect();
 }
 
-sub test_put_move_collection : Test(23) {
+sub test_put_move_collection : Test(19) {
 
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
@@ -195,17 +202,27 @@ sub test_put_move_collection : Test(23) {
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 2, 'Got 2 messages from queue');
 
-    my $i = 0;
-    my @methods = qw[put_collection move_collection];
+    my $put_body = {avus       => [],
+		    collection => $dest_coll,
+		   };
+    my $moved_body = {avus       => [],
+		    collection => $moved_coll,
+		   };
 
-    foreach my $message (@messages) {
-        _test_collection_message($message, $methods[$i]);
-        $i++;
-    }
+    _test_collection_message($messages[0],
+			     'put_collection',
+			     $put_body,
+			     $irods); # 9
+
+    _test_collection_message($messages[1],
+			     'move_collection',
+			     $moved_body,
+			     $irods); # 9
+
     $irods->rmq_disconnect();
 }
 
-sub test_remove_collection : Test(12) {
+sub test_remove_collection : Test(10) {
     my $irods_no_rmq = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -232,11 +249,14 @@ sub test_remove_collection : Test(12) {
 
     my $message = shift @messages;
     my $method = 'remove_collection';
-    _test_collection_message($message, $method);
+    my $body = {avus       => [],
+		collection => $irods_new_coll,
+	       }; # 9
+    _test_collection_message($message, $method, $body, $irods);
     $irods->rmq_disconnect();
 }
 
-sub test_set_collection_permissions : Test(23) {
+sub test_set_collection_permissions : Test(19) {
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -262,9 +282,11 @@ sub test_set_collection_permissions : Test(23) {
     is(scalar @messages, 2, 'Got 2 messages from queue');
 
     my $method = 'set_collection_permissions';
-
+    my $body = {avus       => [],
+		collection => $irods_tmp_coll,
+	       }; # 9
     foreach my $message (@messages) {
-        _test_collection_message($message, $method);
+        _test_collection_message($message, $method, $body, $irods);
     }
     $irods->rmq_disconnect();
 }
@@ -272,7 +294,7 @@ sub test_set_collection_permissions : Test(23) {
 
 ### data object tests ###
 
-sub test_add_object : Test(15) {
+sub test_add_object : Test(11) {
 
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
@@ -283,31 +305,25 @@ sub test_add_object : Test(15) {
        channel              => $test_counter,
       );
     $irods->rmq_init();
-    my $added_remote_path = "$irods_tmp_coll/lorem_copy.txt";
-    $irods->add_object("$data_path/lorem.txt", $added_remote_path);
+    my $copied_filename = 'lorem_copy.txt';
+    my $added_remote_path = "$irods_tmp_coll/$copied_filename";
+    $irods->add_object("$data_path/$test_filename", $added_remote_path);
 
     my $args = _get_subscriber_args($test_counter);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
 
     is(scalar @messages, 1, 'Got 1 message from queue');
-
     my $message = shift @messages;
-    _test_object_message($message, 'add_object');
-  SKIP: {
-        skip "RabbitMQ message not defined", 2, if not defined($message);
-        my ($body, $headers) = @{$message};
-        # temporary staging object is named lorem_copy.txt.[suffix]
-        ok($body->{'data_object'} =~ /^lorem_copy\.txt/msx,
-           'Data object name starts with lorem_copy.txt');
-        ok($body->{'collection'} eq $irods_tmp_coll,
-           "Collection name is $irods_tmp_coll");
-
-    }
+    my $body =  {avus        => [],
+		 collection  => $irods_tmp_coll,
+		 data_object => $copied_filename,
+	       }; # 10
+    _test_object_message($message, 'add_object', $body, $irods); # 10
     $irods->rmq_disconnect();
 }
 
-sub test_copy_object : Test(15) {
+sub test_copy_object : Test(11) {
 
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
@@ -318,7 +334,8 @@ sub test_copy_object : Test(15) {
        channel              => $test_counter,
       );
     $irods->rmq_init();
-    my $copied_remote_path = "$irods_tmp_coll/lorem_copy.txt";
+    my $copied_filename = 'lorem_copy.txt';
+    my $copied_remote_path = "$irods_tmp_coll/$copied_filename";
     $irods->copy_object($remote_file_path, $copied_remote_path);
 
     my $args = _get_subscriber_args($test_counter);
@@ -327,19 +344,15 @@ sub test_copy_object : Test(15) {
     is(scalar @messages, 1, 'Got 1 message from queue');
 
     my $message = shift @messages;
-    _test_object_message($message, 'copy_object');
-  SKIP: {
-        skip "RabbitMQ message not defined", 2, if not defined($message);
-        my ($body, $headers) = @{$message};
-        ok($body->{'data_object'} eq 'lorem_copy.txt',
-           'Data object name is lorem_copy.txt');
-        ok($body->{'collection'} eq $irods_tmp_coll,
-           "Collection name is $irods_tmp_coll");
-    }
+    my $body =  {avus        => [],
+		 collection  => $irods_tmp_coll,
+		 data_object => $copied_filename,
+	       }; # 10
+    _test_object_message($message, 'copy_object', $body, $irods);
     $irods->rmq_disconnect();
 }
 
-sub test_move_object : Test(15) {
+sub test_move_object : Test(11) {
 
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
@@ -350,7 +363,8 @@ sub test_move_object : Test(15) {
        channel              => $test_counter,
       );
     $irods->rmq_init();
-    my $moved_remote_path = "$irods_tmp_coll/lorem_moved.txt";
+    my $moved_filename = 'lorem_moved.txt';
+    my $moved_remote_path = "$irods_tmp_coll/$moved_filename";
     $irods->move_object($remote_file_path, $moved_remote_path);
 
     my $args = _get_subscriber_args($test_counter);
@@ -359,20 +373,15 @@ sub test_move_object : Test(15) {
     is(scalar @messages, 1, 'Got 1 message from queue');
 
     my $message = shift @messages;
-    _test_object_message($message, 'move_object');
-
-   SKIP: {
-        skip "RabbitMQ message not defined", 2, if not defined($message);
-        my ($body, $headers) = @{$message};
-        ok($body->{'data_object'} eq 'lorem_moved.txt',
-           'Data object name is lorem_moved.txt');
-        ok($body->{'collection'} eq $irods_tmp_coll,
-           "Collection name is $irods_tmp_coll");
-    }
+    my $body =  {avus        => [],
+		 collection  => $irods_tmp_coll,
+		 data_object => $moved_filename,
+	       }; # 10
+    _test_object_message($message, 'move_object', $body, $irods);
     $irods->rmq_disconnect();
 }
 
-sub test_object_avu : Test(46) {
+sub test_object_avu : Test(31) {
 
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
@@ -390,10 +399,10 @@ sub test_object_avu : Test(46) {
     my $args = _get_subscriber_args($test_counter);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
-    is(scalar @messages, 3, 'Got 3 messages from queue');
+    my $expected_messages = 3;
+    is(scalar @messages, $expected_messages, 'Got 3 messages from queue');
 
     my @methods = qw[add_object_avu add_object_avu remove_object_avu];
-    my $i = 0;
     my $purple =  {
         'attribute' => 'colour',
         'value' => 'purple'
@@ -408,23 +417,20 @@ sub test_object_avu : Test(46) {
         [$purple]
     );
 
-    foreach my $message (@messages) {
-        _test_object_message($message, $methods[$i]);
-        my ($body, $headers) = @{$message};
-        # ensure consistent AVU order
-	my @avus = $irods->sort_avus(@{$body->{'avus'}});
-        is_deeply(\@avus, $expected_avus[$i]);
-        # temporary staging object is named lorem.txt.[suffix]
-        ok($body->{'data_object'} eq 'lorem.txt',
-           'Data object name is lorem.txt');
-        ok($body->{'collection'} eq $irods_tmp_coll,
-           "Collection name is $irods_tmp_coll");
+    my $i = 0;
+    while ($i < $expected_messages ) {
+	my $body = {avus        => $expected_avus[$i],
+		    data_object => $test_filename,
+		    collection  => $irods_tmp_coll,
+	       };
+        _test_object_message($messages[$i], $methods[$i], $body, $irods);
+	# 10 tests
         $i++;
     }
     $irods->rmq_disconnect();
 }
 
-sub test_remove_object : Test(13) {
+sub test_remove_object : Test(11) {
 
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
@@ -444,11 +450,15 @@ sub test_remove_object : Test(13) {
 
     my $message = shift @messages;
     my $method = 'remove_object';
-    _test_object_message($message, $method);
+    my $body =  {avus        => [],
+		 data_object => $test_filename,
+		 collection  => $irods_tmp_coll,
+	       }; # 10
+    _test_object_message($message, $method, $body, $irods);
     $irods->rmq_disconnect();
 }
 
-sub test_replace_object : Test(15) {
+sub test_replace_object : Test(11) {
 
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
@@ -459,7 +469,7 @@ sub test_replace_object : Test(15) {
        channel              => $test_counter,
       );
     $irods->rmq_init();
-    $irods->replace_object("$data_path/lorem.txt", $remote_file_path);
+    $irods->replace_object("$data_path/$test_filename", $remote_file_path);
 
     my $args = _get_subscriber_args($test_counter);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
@@ -467,20 +477,15 @@ sub test_replace_object : Test(15) {
     is(scalar @messages, 1, 'Got 1 message from queue');
 
     my $message = shift @messages;
-    _test_object_message($message, 'replace_object');
-  SKIP: {
-        skip "RabbitMQ message not defined", 2, if not defined($message);
-        my ($body, $headers) = @{$message};
-        # temporary staging object is named lorem.txt.[suffix]
-        ok($body->{'data_object'} =~ /^lorem\.txt/msx,
-           'Data object name starts with lorem.txt');
-        ok($body->{'collection'} eq $irods_tmp_coll,
-           "Collection name is $irods_tmp_coll");
-    }
+    my $body =  {avus        => [],
+		 data_object => $test_filename,
+		 collection  => $irods_tmp_coll,
+	       }; # 10
+    _test_object_message($message, 'replace_object', $body, $irods);
     $irods->rmq_disconnect();
 }
 
-sub test_set_object_permissions : Test(25) {
+sub test_set_object_permissions : Test(21) {
     # change permissions on a data object, with messaging
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
@@ -505,16 +510,19 @@ sub test_set_object_permissions : Test(25) {
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 2, 'Got 2 messages from queue');
     my $method = 'set_object_permissions';
-
+    my $body = {avus        => [],
+		collection  => $irods_tmp_coll,
+		data_object => $test_filename,
+	       }; # 10
     foreach my $message (@messages) {
-        _test_object_message($message, $method);
+        _test_object_message($message, $method, $body, $irods);
     }
     $irods->rmq_disconnect();
 }
 
 ### methods for the Publisher class ###
 
-sub test_publish_object : Test(14) {
+sub test_publish_object : Test(12) {
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -530,9 +538,10 @@ sub test_publish_object : Test(14) {
        channel              => $test_counter,
       );
     $publisher->rmq_init();
-    my $remote_file_path = "$irods_tmp_coll/ipsum.txt";
-    $publisher->publish("$data_path/lorem.txt",
-                        $remote_file_path);
+    my $published_filename = 'ipsum.txt';
+    my $remote_file_path = "$irods_tmp_coll/$published_filename";
+    my $pub_obj = $publisher->publish("$data_path/$test_filename",
+				      $remote_file_path);
     ok($irods->is_object($remote_file_path), 'File published to iRODS');
     my $args = _get_subscriber_args($test_counter);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
@@ -540,11 +549,15 @@ sub test_publish_object : Test(14) {
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
     my $method = 'publish';
-    _test_object_message($message, $method);
+    my $body = {avus        => $pub_obj->get_metadata(),
+		collection  => $irods_tmp_coll,
+		data_object => $published_filename,
+	       };
+    _test_object_message($message, $method, $body, $irods);
     $publisher->rmq_disconnect();
 }
 
-sub test_publish_collection : Test(13) {
+sub test_publish_collection : Test(11) {
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -560,16 +573,21 @@ sub test_publish_collection : Test(13) {
        channel              => $test_counter,
       );
     $publisher->rmq_init();
-    my $dest_coll = "$irods_tmp_coll/reporter";
-    $publisher->publish($data_path, $dest_coll);
+    my $pub_coll = $publisher->publish($data_path, $irods_tmp_coll);
+    my $dest_coll = $irods_tmp_coll.'/reporter';
     ok($irods->is_collection($dest_coll), 'Collection published to iRODS');
     my $args = _get_subscriber_args($test_counter);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
+
+    # get AVUs from iRODS collection to check against message body
     my $message = shift @messages;
     my $method = 'publish';
-    _test_collection_message($message, $method);
+    my $body = {avus        => $pub_coll->get_metadata(),
+		collection  => $dest_coll,
+	       };
+    _test_collection_message($message, $method, $body, $irods);
     $publisher->rmq_disconnect();
 }
 
@@ -586,27 +604,25 @@ sub _get_subscriber_args {
 }
 
 sub _test_collection_message {
-    my ($message, $method) = @_;
-    # total tests = 9
-    my @body_keys = qw[collection
-                       avus];
-    return _test_message($message, $method, \@body_keys);
+    my ($message, $method, $expected_body, $irods) = @_;
+    # 9 tests in total
+    return _test_message($message, $method, $expected_body, $irods, 0);
 }
 
 sub _test_object_message {
-    my ($message, $method) = @_;
-    # total tests = 10
-    my @body_keys = qw[collection
-                       data_object
-                       avus];
-    return _test_message($message, $method, \@body_keys);
+    my ($message, $method, $expected_body, $irods) = @_;
+    # 10 tests in total
+    return _test_message($message, $method, $expected_body, $irods, 1);
 }
 
 sub _test_message {
-  my ($message, $method, $body_keys) = @_;
-  # total tests = 7 + number of body keys
-  #             = 9 for object, 10 for collection
-  my $total_tests = 7 + (scalar @{$body_keys});
+  my ($message, $method, $expected_body, $irods, $is_data_object) = @_;
+
+  my $expected_headers = 5; # timestamp, user, irods_user, type, method
+  my $expected_body_keys_total = scalar keys(%{$expected_body});
+
+  my $total_tests = 9;
+  if ($is_data_object) { $total_tests++; }
 
   my $skip = not defined($message);
   if ($skip) {
@@ -616,24 +632,35 @@ sub _test_message {
  SKIP: {
     skip "RabbitMQ message not defined", $total_tests if $skip;
     my ($body, $headers) = @{$message};
-    my @body_keys = @{$body_keys};
-    my $expected_body_obj = scalar @body_keys;
+
+    # expected number of header/body fields
     ok(scalar keys(%{$headers}) == $expected_headers,
        'Found '.$expected_headers.' header key/value pairs.');
-    ok(scalar keys(%{$body}) == $expected_body_obj,
-       'Found '.$expected_body_obj.' body key/value pairs.');
-    ok($headers->{'method'} eq $method, 'Method name is '.$method);
+    ok(scalar keys(%{$body}) == $expected_body_keys_total,
+       'Found '.$expected_body_keys_total.' body key/value pairs.');
+
+    # check content of headers
+    ok($headers->{'method'} eq $method, "Header method name is $method");
     my $time = $headers->{'timestamp'};
     ok($time =~ /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}/msx,
        "Header timestamp '$time' is in correct format");
-    foreach my $key (@header_keys) {
-      ok(defined $headers->{$key},
-	 'Value defined in message header for '.$key);
+    my $user = $ENV{'USER'};
+    ok($headers->{'user'} eq $user, "Header user name is $user");
+    ok($headers->{'irods_user'} eq $user, "Header iRODS user name is $user");
+    ok(defined $headers->{'type'},
+       "Header file type is defined (may be an empty string)");
+
+    # check content of body
+    ok($body->{'collection'} eq $expected_body->{'collection'},
+       'Collection matches expected value');
+    if ($is_data_object) {
+      ok($body->{'data_object'} eq $expected_body->{'data_object'},
+	 'Data object matches expected value');
     }
-    foreach my $key (@body_keys) {
-      ok(defined $body->{$key},
-	 'Value defined in message body for '.$key);
-    }
+    # sort avus to ensure consistent order for comparison
+    my @avus = $irods->sort_avus(@{$body->{'avus'}});
+    my @expected_avus = $irods->sort_avus(@{$expected_body->{'avus'}});
+    is_deeply(\@avus, \@expected_avus, 'AVUs match expected values');
   }
 }
 
