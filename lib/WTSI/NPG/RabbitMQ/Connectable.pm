@@ -109,14 +109,14 @@ sub rmq_connect {
         if (! $self->rmq->is_connected()) {
             $self->logcroak('Failed to connect to RabbitMQ: ', $!);
         }
-        $self->debug('Connected to RabbitMQ server: ',
-                     $self->rmq_cluster_name());
+    my $cluster_name = $self->rmq_cluster_name() || '[name undefined]';
+        $self->debug('Connected to RabbitMQ server: ', $cluster_name);
     }
     return 1;
 }
 
 
-=head2 rmq_connect
+=head2 rmq_disconnect
 
   Args       : None
   Example    : $irods->rmq_connect
@@ -131,7 +131,7 @@ sub rmq_disconnect {
         # disconnect() return value not documented
         # try/catch may obscure error message
         # use is_connected to check status instead
-        my $name = $self->rmq_cluster_name();
+        my $name = $self->rmq_cluster_name() || '[name undefined]';
         $self->rmq->disconnect();
         if ($self->rmq->is_connected()) {
             $self->logcroak('Failed to disconnect from RabbitMQ server ',
@@ -145,7 +145,7 @@ sub rmq_disconnect {
     return 1;
 }
 
-=head2 rmq_connect
+=head2 rmq_cluster_name
 
   Args       : None
   Example    : $irods->rmq_connect
