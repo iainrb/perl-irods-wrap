@@ -519,7 +519,7 @@ sub test_set_object_permissions : Test(21) {
 
 ### methods for the Publisher class ###
 
-sub test_publish_object : Test(12) {
+sub test_publish_object : Test(13) {
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -537,9 +537,12 @@ sub test_publish_object : Test(12) {
     $publisher->rmq_init();
     my $published_filename = 'ipsum.txt';
     my $remote_file_path = "$irods_tmp_coll/$published_filename";
+    $remote_file_path = $irods->absolute_path($remote_file_path);
     my $pub_obj = $publisher->publish("$data_path/$test_filename",
 				      $remote_file_path);
     ok($irods->is_object($remote_file_path), 'File published to iRODS');
+    ok($remote_file_path eq $pub_obj->absolute()->str(),
+       'Absolute data object paths from input and return value are equal');
     my $args = _get_subscriber_args($test_counter);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
@@ -554,7 +557,7 @@ sub test_publish_object : Test(12) {
     $publisher->rmq_disconnect();
 }
 
-sub test_publish_collection : Test(11) {
+sub test_publish_collection : Test(12) {
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -572,7 +575,10 @@ sub test_publish_collection : Test(11) {
     $publisher->rmq_init();
     my $pub_coll = $publisher->publish($data_path, $irods_tmp_coll);
     my $dest_coll = $irods_tmp_coll.'/reporter';
+    $dest_coll = $irods->absolute_path($dest_coll);
     ok($irods->is_collection($dest_coll), 'Collection published to iRODS');
+    ok($dest_coll eq $pub_coll->absolute()->str(),
+       'Absolute collection paths from input and return value are equal');
     my $args = _get_subscriber_args($test_counter);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
