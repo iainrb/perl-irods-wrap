@@ -94,6 +94,8 @@ sub test_message_queue : Test(2) {
     is(scalar @messages, 1, 'Got 1 message from queue');
     my $message = shift @messages;
   SKIP: {
+        # If message undefined, skip tests on content to improve readability
+        # Distinct from option to skip all RabbitMQ tests; see TestRabbitMQ.pm
         skip "RabbitMQ message not defined", 1 if not defined $message;
         my ($msg_body, $msg_headers) = @{$message};
         is_deeply($msg_body, $body, 'Message body has expected value');
@@ -125,7 +127,7 @@ sub test_add_collection : Test(10) {
     my $body = {avus       => [],
 		collection => $irods_new_coll,
 	       };
-    _test_collection_message($message, $method, $body, $irods); # 9
+    _test_collection_message($message, $method, $body, $irods);
     $irods->rmq_disconnect();
 }
 
@@ -172,7 +174,6 @@ sub test_collection_avu : Test(28) {
 		    collection => $irods_tmp_coll,
 	       };
         _test_collection_message($messages[$i], $methods[$i], $body, $irods);
-	# 9 tests
         $i++;
     }
     $irods->rmq_disconnect();
@@ -209,12 +210,12 @@ sub test_put_move_collection : Test(19) {
     _test_collection_message($messages[0],
 			     'put_collection',
 			     $put_body,
-			     $irods); # 9
+			     $irods);
 
     _test_collection_message($messages[1],
 			     'move_collection',
 			     $moved_body,
-			     $irods); # 9
+			     $irods);
 
     $irods->rmq_disconnect();
 }
@@ -248,7 +249,7 @@ sub test_remove_collection : Test(10) {
     my $method = 'remove_collection';
     my $body = {avus       => [],
 		collection => $irods_new_coll,
-	       }; # 9
+	       };
     _test_collection_message($message, $method, $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -281,7 +282,7 @@ sub test_set_collection_permissions : Test(19) {
     my $method = 'set_collection_permissions';
     my $body = {avus       => [],
 		collection => $irods_tmp_coll,
-	       }; # 9
+	       };
     foreach my $message (@messages) {
         _test_collection_message($message, $method, $body, $irods);
     }
@@ -315,8 +316,8 @@ sub test_add_object : Test(11) {
     my $body =  {avus        => [],
 		 collection  => $irods_tmp_coll,
 		 data_object => $copied_filename,
-	       }; # 10
-    _test_object_message($message, 'add_object', $body, $irods); # 10
+	       };
+    _test_object_message($message, 'add_object', $body, $irods);
     $irods->rmq_disconnect();
 }
 
@@ -344,7 +345,7 @@ sub test_copy_object : Test(11) {
     my $body =  {avus        => [],
 		 collection  => $irods_tmp_coll,
 		 data_object => $copied_filename,
-	       }; # 10
+	       };
     _test_object_message($message, 'copy_object', $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -373,7 +374,7 @@ sub test_move_object : Test(11) {
     my $body =  {avus        => [],
 		 collection  => $irods_tmp_coll,
 		 data_object => $moved_filename,
-	       }; # 10
+	       };
     _test_object_message($message, 'move_object', $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -421,7 +422,6 @@ sub test_object_avu : Test(31) {
 		    collection  => $irods_tmp_coll,
 	       };
         _test_object_message($messages[$i], $methods[$i], $body, $irods);
-	# 10 tests
         $i++;
     }
     $irods->rmq_disconnect();
@@ -450,7 +450,7 @@ sub test_remove_object : Test(11) {
     my $body =  {avus        => [],
 		 data_object => $test_filename,
 		 collection  => $irods_tmp_coll,
-	       }; # 10
+	       };
     _test_object_message($message, $method, $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -477,7 +477,7 @@ sub test_replace_object : Test(11) {
     my $body =  {avus        => [],
 		 data_object => $test_filename,
 		 collection  => $irods_tmp_coll,
-	       }; # 10
+	       };
     _test_object_message($message, 'replace_object', $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -510,7 +510,7 @@ sub test_set_object_permissions : Test(21) {
     my $body = {avus        => [],
 		collection  => $irods_tmp_coll,
 		data_object => $test_filename,
-	       }; # 10
+	       };
     foreach my $message (@messages) {
         _test_object_message($message, $method, $body, $irods);
     }
@@ -619,8 +619,22 @@ sub _test_object_message {
 }
 
 sub _test_message {
-  my ($message, $method, $expected_body, $irods, $is_data_object) = @_;
+  # General-purpose method to test RabbitMQ messages.
+  #
+  # Arguments:
+  # - [ArrayRef] RabbitMQ message, consisting of body and headers
+  # - [Str] Method name
+  # - [HashRef] Expected body of message.
+  # - [WTSI::NPG::iRODS] iRODS object, used for sorting AVUs
+  # - [Bool] Flag to indicate a data object (as opposed to a collection)
+  #
+  # Tests performed:
+  # - Exact values of method, user, and irods_user headers
+  # - Format of timestamp header
+  # - Presence of file type header (value may be an empty string)
+  # - Exact values of collection, data object and AVUs (if any) in body
 
+  my ($message, $method, $expected_body, $irods, $is_data_object) = @_;
   my $expected_headers = 5; # timestamp, user, irods_user, type, method
   my $expected_body_keys_total = scalar keys(%{$expected_body});
 
@@ -633,6 +647,8 @@ sub _test_message {
 		  'skipping subsequent tests on content of the message');
   }
  SKIP: {
+   # If message undefined, skip tests on content to improve readability
+   # Distinct from option to skip all RabbitMQ tests; see TestRabbitMQ.pm
     skip "RabbitMQ message not defined", $total_tests if $skip;
     my ($body, $headers) = @{$message};
 
