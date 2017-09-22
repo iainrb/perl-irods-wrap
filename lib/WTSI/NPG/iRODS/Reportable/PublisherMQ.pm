@@ -4,9 +4,6 @@ use strict;
 use warnings;
 use Moose::Role;
 
-use File::Basename qw[fileparse];
-use JSON;
-
 our $VERSION = '';
 
 with 'WTSI::NPG::iRODS::Reportable::Base';
@@ -19,71 +16,25 @@ foreach my $name (@REPORTABLE_METHODS) {
 
     around $name => sub {
         my ($orig, $self, @args) = @_;
-	my $now = $self->rmq_timestamp();
+    my $now = $self->rmq_timestamp();
         my $obj = $self->$orig(@args);
         if ($self->enable_rmq) {
             $self->debug('RabbitMQ reporting for method ', $name,
                          ' on path ', $obj->str() );
-	    my $body;
-	    if ($obj->meta->has_attribute('data_object')) {
-                $body = $self->_get_object_message_body($obj->str());
-	    } else {
-                $body = $self->_get_collection_message_body($obj->str());
-	    }
-	    if (not defined $body) {
-                $self->error("Cannot generate RabbitMQ message body for ",
-			     $obj->str());
-	    }
-            $self->publish_rmq_message($body, $name, $now);
+        my $body;
+        if ($obj->meta->has_attribute('data_object')) {
+                $body = $self->object_message_body($obj->str(),
+                                                   $self->irods);
+        } else {
+                $body = $self->collection_message_body($obj->str(),
+                                                       $self->irods);
+        }
+            my $user = $self->irods->get_irods_user;
+            my $headers = $self->message_headers($body, $name, $now, $user);
+            $self->publish_rmq_message($body, $headers);
         }
         return $obj;
     };
-
-}
-
-# TODO add _get_*_body methods similar to iRODSMQ.pm, to record permissions
-
-sub get_irods_user {
-    # required by WTSI::NPG::iRODS::Reportable::Base
-    my ($self,) = @_;
-    return $self->irods->get_irods_user;
-}
-
-sub _get_collection_message_body {
-    my ($self, $path) = @_;
-    $path = $self->irods->ensure_collection_path($path);
-    my @avus = $self->irods->get_collection_meta($path);
-    # $spec based on json() method of DataObject; also records permissions
-
-    my @permissions = $self->irods->get_collection_permissions($path);
-    #print STDERR "PERMISSIONS: ";
-    #print STDERR Dumper \@permissions;
-    my $spec = { collection  => $path,
-                 avus        => \@avus,
-		 acl         => \@permissions,
-             };
-    my $body = encode_json($spec);
-    return $body;
-}
-
-sub _get_object_message_body {
-    my ($self, $path) = @_;
-    $path = $self->irods->ensure_object_path($path); # uses path cache
-    my ($obj, $collection, $suffix) = fileparse($path);
-    $collection =~ s/\/$//msx; # remove trailing /
-    my @avus = $self->irods->get_object_meta($path); # uses metadata cache
-    # $spec based on json() method of DataObject; also records permissions
-
-    my @permissions = $self->irods->get_object_permissions($path);
-    #print STDERR "PERMISSIONS: ";
-    #print STDERR Dumper \@permissions;
-    my $spec = { collection  => $collection,
-                 data_object => $obj,
-                 avus        => \@avus,
-		 acl         => \@permissions,
-             };
-    my $body = encode_json($spec);
-    return $body;
 }
 
 no Moose::Role;

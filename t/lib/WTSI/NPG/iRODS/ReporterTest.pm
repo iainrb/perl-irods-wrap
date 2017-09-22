@@ -10,8 +10,6 @@ use Log::Log4perl;
 use Test::Exception;
 use Test::More;
 
-use Data::Dumper; # FIXME
-
 use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
 
 Log::Log4perl::init('./etc/log4perl_tests.conf');
@@ -58,9 +56,9 @@ sub setup_test : Test(setup) {
     my @messages = $subscriber->read_all($queue);
     # messaging disabled for test setup
     my $irods = WTSI::NPG::iRODSMQTest->new(environment          => \%ENV,
-					    strict_baton_version => 0,
-					    enable_rmq           => 0,
-					   );
+                        strict_baton_version => 0,
+                        enable_rmq           => 0,
+                       );
 
     $cwc = $irods->working_collection;
     $irods_tmp_coll =
@@ -72,9 +70,9 @@ sub setup_test : Test(setup) {
 sub teardown_test : Test(teardown) {
     # messaging disabled for test teardown
     my $irods = WTSI::NPG::iRODSMQTest->new(environment          => \%ENV,
-					    strict_baton_version => 0,
-					    enable_rmq           => 0,
-					   );
+                        strict_baton_version => 0,
+                        enable_rmq           => 0,
+                       );
     $irods->working_collection($cwc);
     $irods->remove_collection($irods_tmp_coll);
 }
@@ -129,8 +127,8 @@ sub test_add_collection : Test(11) {
     my @acl = $irods->get_collection_permissions($irods_new_coll);
     my $body = {avus       => [],
                 acl        => \@acl,
-		collection => $irods_new_coll,
-	       };
+        collection => $irods_new_coll,
+           };
     _test_collection_message($message, $method, $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -175,10 +173,10 @@ sub test_collection_avu : Test(31) {
     my @acl = $irods->get_collection_permissions($irods_tmp_coll);
     my $i = 0;
     while ($i < $expected_messages ) {
-	my $body = {avus       => $expected_avus[$i],
+    my $body = {avus       => $expected_avus[$i],
                     acl        => \@acl,
-		    collection => $irods_tmp_coll,
-	       };
+            collection => $irods_tmp_coll,
+           };
         _test_collection_message($messages[$i], $methods[$i], $body, $irods);
         $i++;
     }
@@ -201,15 +199,15 @@ sub test_put_move_collection : Test(21) {
     my @acl = $irods->get_collection_permissions($dest_coll);
     my $put_body = {avus       => [],
                     acl        => \@acl,
-		    collection => $dest_coll,
-		   };
+            collection => $dest_coll,
+           };
     my $moved_coll = $irods_tmp_coll.'/reporter.moved';
     $irods->move_collection($dest_coll, $moved_coll);
     # should have same permissions on put and moved collections
     my $moved_body = {avus       => [],
                       acl        => \@acl,
                       collection => $moved_coll,
-		   };
+           };
 
     my $args = _get_subscriber_args($test_counter);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
@@ -217,14 +215,14 @@ sub test_put_move_collection : Test(21) {
     is(scalar @messages, 2, 'Got 2 messages from queue');
 
     _test_collection_message($messages[0],
-			     'put_collection',
-			     $put_body,
-			     $irods);
+                 'put_collection',
+                 $put_body,
+                 $irods);
 
     _test_collection_message($messages[1],
-			     'move_collection',
-			     $moved_body,
-			     $irods);
+                 'move_collection',
+                 $moved_body,
+                 $irods);
 
     $irods->rmq_disconnect();
 }
@@ -258,8 +256,8 @@ sub test_remove_collection : Test(11) {
     my $method = 'remove_collection';
     my $body = {avus       => [],
                 acl        => \@acl,
-		collection => $irods_new_coll,
-	       };
+        collection => $irods_new_coll,
+           };
     _test_collection_message($message, $method, $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -333,9 +331,9 @@ sub test_add_object : Test(12) {
     my @acl = $irods->get_object_permissions($added_remote_path);
     my $body =  {avus        => [],
                  acl         => \@acl,
-		 collection  => $irods_tmp_coll,
-		 data_object => $copied_filename,
-	       };
+         collection  => $irods_tmp_coll,
+         data_object => $copied_filename,
+           };
     _test_object_message($message, 'add_object', $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -364,9 +362,9 @@ sub test_copy_object : Test(12) {
     my @acl = $irods->get_object_permissions($copied_remote_path);
     my $body =  {avus        => [],
                  acl         => \@acl,
-		 collection  => $irods_tmp_coll,
-		 data_object => $copied_filename,
-	       };
+         collection  => $irods_tmp_coll,
+         data_object => $copied_filename,
+           };
     _test_object_message($message, 'copy_object', $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -395,9 +393,9 @@ sub test_move_object : Test(12) {
     my @acl = $irods->get_object_permissions($moved_remote_path);
     my $body =  {avus        => [],
                  acl         => \@acl,
-		 collection  => $irods_tmp_coll,
-		 data_object => $moved_filename,
-	       };
+         collection  => $irods_tmp_coll,
+         data_object => $moved_filename,
+           };
     _test_object_message($message, 'move_object', $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -441,11 +439,11 @@ sub test_object_avu : Test(34) {
     my @acl = $irods->get_object_permissions($remote_file_path);
     my $i = 0;
     while ($i < $expected_messages ) {
-	my $body = {avus        => $expected_avus[$i],
+    my $body = {avus        => $expected_avus[$i],
                     acl         => \@acl,
-		    data_object => $test_filename,
-		    collection  => $irods_tmp_coll,
-	       };
+            data_object => $test_filename,
+            collection  => $irods_tmp_coll,
+           };
         _test_object_message($messages[$i], $methods[$i], $body, $irods);
         $i++;
     }
@@ -475,9 +473,9 @@ sub test_remove_object : Test(12) {
     my $method = 'remove_object';
     my $body =  {avus        => [],
                  acl         => \@acl,
-		 data_object => $test_filename,
-		 collection  => $irods_tmp_coll,
-	       };
+         data_object => $test_filename,
+         collection  => $irods_tmp_coll,
+           };
     _test_object_message($message, $method, $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -504,9 +502,9 @@ sub test_replace_object : Test(12) {
     my @acl = $irods->get_object_permissions($remote_file_path);
     my $body =  {avus        => [],
                  acl         => \@acl,
-		 data_object => $test_filename,
-		 collection  => $irods_tmp_coll,
-	       };
+         data_object => $test_filename,
+         collection  => $irods_tmp_coll,
+           };
     _test_object_message($message, 'replace_object', $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -576,7 +574,7 @@ sub test_publish_object : Test(14) {
     my $remote_file_path = "$irods_tmp_coll/$published_filename";
     $remote_file_path = $irods->absolute_path($remote_file_path);
     my $pub_obj = $publisher->publish("$data_path/$test_filename",
-				      $remote_file_path);
+                      $remote_file_path);
     ok($irods->is_object($remote_file_path), 'File published to iRODS');
     ok($remote_file_path eq $pub_obj->absolute()->str(),
        'Absolute data object paths from input and return value are equal');
@@ -588,10 +586,10 @@ sub test_publish_object : Test(14) {
     my $method = 'publish';
     my @acl = $irods->get_object_permissions($remote_file_path);
     my $body = {avus        => $pub_obj->get_metadata(),
-		acl         => \@acl,
-		collection  => $irods_tmp_coll,
-		data_object => $published_filename,
-	       };
+        acl         => \@acl,
+        collection  => $irods_tmp_coll,
+        data_object => $published_filename,
+           };
     _test_object_message($message, $method, $body, $irods);
     $publisher->rmq_disconnect();
 }
@@ -628,9 +626,9 @@ sub test_publish_collection : Test(13) {
     my $method = 'publish';
     my @acl = $irods->get_collection_permissions($dest_coll);
     my $body = {avus        => $pub_coll->get_metadata(),
-		acl         => \@acl,
-		collection  => $dest_coll,
-	       };
+        acl         => \@acl,
+        collection  => $dest_coll,
+           };
     _test_collection_message($message, $method, $body, $irods);
     $publisher->rmq_disconnect();
 }
@@ -685,7 +683,7 @@ sub _test_message {
   my $skip = not defined($message);
   if ($skip) {
     $log->logwarn('Unexpectedly got an undefined message from RabbitMQ; ',
-		  'skipping subsequent tests on content of the message');
+          'skipping subsequent tests on content of the message');
   }
  SKIP: {
    # If message undefined, skip tests on content to improve readability
@@ -715,7 +713,7 @@ sub _test_message {
        'Collection matches expected value');
     if ($is_data_object) {
       ok($body->{'data_object'} eq $expected_body->{'data_object'},
-	 'Data object matches expected value');
+     'Data object matches expected value');
     }
     # sort AVUs to ensure consistent order for comparison
     my @avus = $irods->sort_avus(@{$body->{'avus'}});
