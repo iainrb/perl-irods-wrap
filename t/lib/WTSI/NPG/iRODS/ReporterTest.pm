@@ -600,7 +600,7 @@ sub test_publish_collection : Test(13) {
        enable_rmq           => 0,
       );
     my $user = 'public';
-    my $publisher = WTSI::NPG::Publisher->new
+    my $publisher = WTSI::NPG::iRODS::Publisher->new
       (
        irods                => $irods,
        routing_key_prefix   => 'test',
