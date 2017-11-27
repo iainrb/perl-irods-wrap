@@ -46,7 +46,9 @@ my $queue = 'test_irods_data_create_messages';
 
 sub setup_test : Test(setup) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
-                                    strict_baton_version => 0);
+                                    strict_baton_version => 0,
+                                    enable_rmq => 0,
+                                );
   $cwc = $irods->working_collection;
 
   # Prepare a copy of the test data because the tests will modify it
@@ -66,7 +68,9 @@ sub setup_test : Test(setup) {
 
 sub teardown_test : Test(teardown) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
-                                    strict_baton_version => 0);
+                                    strict_baton_version => 0,
+                                    enable_rmq => 0,
+                                );
   # Delete the copy of the test data
   undef $tmp_data_path;
 
