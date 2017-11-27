@@ -18,6 +18,8 @@ use base qw[WTSI::NPG::iRODS::Test];
 
 Log::Log4perl::init('./etc/log4perl_tests.conf');
 
+my $log = Log::Log4perl::get_logger();
+
 use WTSI::NPG::iRODS::DataObject;
 use WTSI::NPG::iRODS::Metadata;
 use WTSI::NPG::iRODS::Publisher;
