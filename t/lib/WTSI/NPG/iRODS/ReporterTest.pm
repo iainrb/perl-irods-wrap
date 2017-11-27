@@ -10,6 +10,9 @@ use Log::Log4perl;
 use Test::Exception;
 use Test::More;
 
+use WTSI::NPG::iRODS;
+use WTSI::NPG::iRODS::Publisher;
+
 use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
 
 Log::Log4perl::init('./etc/log4perl_tests.conf');
@@ -51,7 +54,7 @@ sub setup_test : Test(setup) {
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     # messaging disabled for test setup
-    my $irods = WTSI::NPG::iRODSMQTest->new(environment          => \%ENV,
+    my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                         strict_baton_version => 0,
                         enable_rmq           => 0,
                        );
@@ -65,7 +68,7 @@ sub setup_test : Test(setup) {
 
 sub teardown_test : Test(teardown) {
     # messaging disabled for test teardown
-    my $irods = WTSI::NPG::iRODSMQTest->new(environment          => \%ENV,
+    my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                         strict_baton_version => 0,
                         enable_rmq           => 0,
                        );
@@ -101,7 +104,7 @@ sub test_message_queue : Test(2) {
 ### collection tests ###
 
 sub test_add_collection : Test(11) {
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        routing_key_prefix   => 'test',
@@ -131,7 +134,7 @@ sub test_add_collection : Test(11) {
 
 sub test_collection_avu : Test(31) {
 
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        routing_key_prefix   => 'test',
@@ -181,7 +184,7 @@ sub test_collection_avu : Test(31) {
 
 sub test_put_move_collection : Test(21) {
 
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        routing_key_prefix   => 'test',
@@ -224,7 +227,7 @@ sub test_put_move_collection : Test(21) {
 }
 
 sub test_remove_collection : Test(11) {
-    my $irods_no_rmq = WTSI::NPG::iRODSMQTest->new
+    my $irods_no_rmq = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        enable_rmq           => 0,
@@ -232,7 +235,7 @@ sub test_remove_collection : Test(11) {
     my $irods_new_coll = $irods_tmp_coll.'/temp';
     $irods_no_rmq->add_collection($irods_new_coll);
 
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        routing_key_prefix   => 'test',
@@ -259,7 +262,7 @@ sub test_remove_collection : Test(11) {
 }
 
 sub test_set_collection_permissions : Test(21) {
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        routing_key_prefix   => 'test',
@@ -305,7 +308,7 @@ sub test_set_collection_permissions : Test(21) {
 
 sub test_add_object : Test(12) {
 
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        routing_key_prefix   => 'test',
@@ -336,7 +339,7 @@ sub test_add_object : Test(12) {
 
 sub test_copy_object : Test(12) {
 
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        routing_key_prefix   => 'test',
@@ -367,7 +370,7 @@ sub test_copy_object : Test(12) {
 
 sub test_move_object : Test(12) {
 
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        routing_key_prefix   => 'test',
@@ -398,7 +401,7 @@ sub test_move_object : Test(12) {
 
 sub test_object_avu : Test(34) {
 
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        routing_key_prefix   => 'test',
@@ -448,7 +451,7 @@ sub test_object_avu : Test(34) {
 
 sub test_remove_object : Test(12) {
 
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        routing_key_prefix   => 'test',
@@ -478,7 +481,7 @@ sub test_remove_object : Test(12) {
 
 sub test_replace_object : Test(12) {
 
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        routing_key_prefix   => 'test',
@@ -507,7 +510,7 @@ sub test_replace_object : Test(12) {
 
 sub test_set_object_permissions : Test(23) {
     # change permissions on a data object, with messaging
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        routing_key_prefix   => 'test',
@@ -551,13 +554,13 @@ sub test_set_object_permissions : Test(23) {
 ### methods for the Publisher class ###
 
 sub test_publish_object : Test(14) {
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        enable_rmq           => 0,
       );
     my $user = 'public';
-    my $publisher = WTSI::NPG::PublisherMQTest->new
+    my $publisher = WTSI::NPG::iRODS::Publisher->new
       (
        irods                => $irods,
        routing_key_prefix   => 'test',
@@ -591,13 +594,13 @@ sub test_publish_object : Test(14) {
 }
 
 sub test_publish_collection : Test(13) {
-    my $irods = WTSI::NPG::iRODSMQTest->new
+    my $irods = WTSI::NPG::iRODS->new
       (environment          => \%ENV,
        strict_baton_version => 0,
        enable_rmq           => 0,
       );
     my $user = 'public';
-    my $publisher = WTSI::NPG::PublisherMQTest->new
+    my $publisher = WTSI::NPG::Publisher->new
       (
        irods                => $irods,
        routing_key_prefix   => 'test',
