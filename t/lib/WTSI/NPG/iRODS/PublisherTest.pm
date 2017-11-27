@@ -90,8 +90,10 @@ sub message : Test(13) {
                                     routing_key_prefix   => 'test',
                                     hostname             => $test_host,
                                     rmq_config_path      => $conf,
-                                    channel              => $test_counter,
+                                    channel              => 1,
                                 );
+  # TODO increment channel for each test?
+
   $irods->rmq_init();
   my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
   my $filename = 'a.txt';
