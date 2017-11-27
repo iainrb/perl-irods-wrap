@@ -88,8 +88,9 @@ sub message : Test(13) {
                                 );
   $irods->rmq_init();
   my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
-  my $local_file_path  = "$tmp_data_path/publish/a.txt";
-  my $remote_file_path = "$irods_tmp_coll/a.txt";
+  my $filename = 'a.txt';
+  my $local_file_path  = "$tmp_data_path/publish/$filename";
+  my $remote_file_path = "$irods_tmp_coll/$filename";
   my $file_pub = $publisher->publish($local_file_path, $remote_file_path);
   isa_ok($file_pub, 'WTSI::NPG::iRODS::DataObject',
          'publish, file -> returns a DataObject');
@@ -103,7 +104,7 @@ sub message : Test(13) {
   my $body =  {avus        => [],
                acl         => \@acl,
                collection  => $irods_tmp_coll,
-               data_object => $copied_filename,
+               data_object => $filename,
            };
   _test_object_message($message, 'add_object', $body, $irods);
   $irods->rmq_disconnect();
