@@ -9,6 +9,7 @@ use English qw[-no_match_vars];
 use File::Copy::Recursive qw[dircopy];
 use File::Spec::Functions;
 use File::Temp;
+use JSON;
 use Log::Log4perl;
 use Test::Exception;
 use Test::More;
