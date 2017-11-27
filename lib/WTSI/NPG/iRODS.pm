@@ -160,9 +160,9 @@ has '_permissions_cache' =>
    default       => sub { return Cache::LRU->new(size => $DEFAULT_CACHE_SIZE) },
    documentation => 'A cache mapping known iRODS paths to their permissions');
 
-
 with 'WTSI::DNAP::Utilities::Loggable',
-     'WTSI::NPG::iRODS::Utilities';
+     'WTSI::NPG::iRODS::Utilities',
+     'WTSI::NPG::iRODS::Reportable::iRODSMQ';
 
 sub BUILD {
   my ($self) = @_;

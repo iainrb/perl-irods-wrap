@@ -30,6 +30,18 @@ my $tmp_data_path;
 my $irods_tmp_coll;
 my $cwc;
 
+# RabbitMQ variables
+my @header_keys = qw[timestamp
+                     user
+                     irods_user
+                     type
+                     method];
+my $expected_headers = scalar @header_keys;
+my $test_host = $ENV{'NPG_RMQ_HOST'} || 'localhost';
+my $conf = $ENV{'NPG_RMQ_CONFIG'} || './etc/rmq_test_config.json';
+my $queue = 'test_irods_data_create_messages';
+
+
 sub setup_test : Test(setup) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                     strict_baton_version => 0);
@@ -41,6 +53,12 @@ sub setup_test : Test(setup) {
     croak "Failed to copy test data from $data_path to $tmp_data_path";
 
   $irods_tmp_coll = $irods->add_collection("PublisherTest.$pid.$test_counter");
+
+  # Clear the message queue.
+  my $args = _get_subscriber_args($test_counter);
+  my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
+  my @messages = $subscriber->read_all($queue);
+
   $test_counter++;
 }
 
@@ -56,6 +74,40 @@ sub teardown_test : Test(teardown) {
 
 sub require : Test(1) {
   require_ok('WTSI::NPG::iRODS::Publisher');
+}
+
+sub message : Test(13) {
+  # test RabbitMQ message capability
+
+  my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
+                                    strict_baton_version => 0,
+                                    routing_key_prefix   => 'test',
+                                    hostname             => $test_host,
+                                    rmq_config_path      => $conf,
+                                    channel              => $test_counter,
+                                );
+  $irods->rmq_init();
+  my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
+  my $local_file_path  = "$tmp_data_path/publish/a.txt";
+  my $remote_file_path = "$irods_tmp_coll/a.txt";
+  my $file_pub = $publisher->publish($local_file_path, $remote_file_path);
+  isa_ok($file_pub, 'WTSI::NPG::iRODS::DataObject',
+         'publish, file -> returns a DataObject');
+
+  my $args = _get_subscriber_args($test_counter);
+  my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
+  my @messages = $subscriber->read_all($queue);
+  is(scalar @messages, 1, 'Got 1 message from queue');
+  my $message = shift @messages;
+  my @acl = $irods->get_object_permissions($remote_file_path);
+  my $body =  {avus        => [],
+               acl         => \@acl,
+               collection  => $irods_tmp_coll,
+               data_object => $copied_filename,
+           };
+  _test_object_message($message, 'add_object', $body, $irods);
+  $irods->rmq_disconnect();
+
 }
 
 sub publish : Test(8) {
@@ -470,5 +522,98 @@ sub pf_stale_md5_cache {
   is($obj->get_avu($FILE_MD5)->{value}, 'c8a3fa18c7c1402c953415a6b4f8ef7d',
      'Stale MD5 was regenerated') or diag explain $obj->metadata;
 }
+
+####################################################################
+# private methods for repeated tests
+
+sub _get_subscriber_args {
+    my ($channel, ) = @_;
+    my $args = {
+        hostname             => $test_host, # global variable
+        rmq_config_path      => $conf,      # global variable
+        channel              => $channel,
+    };
+    return $args;
+}
+
+sub _test_object_message {
+    my ($message, $method, $expected_body, $irods) = @_;
+    # 11 tests in total
+    return _test_message($message, $method, $expected_body, $irods, 1);
+}
+
+sub _test_message {
+  # General-purpose method to test RabbitMQ messages.
+  #
+  # TODO remove duplication with method in ReporterTest.pm
+  #
+  # Arguments:
+  # - [ArrayRef] RabbitMQ message, consisting of body and headers
+  # - [Str] Method name
+  # - [HashRef] Expected body of message.
+  # - [WTSI::NPG::iRODS] iRODS object, used for sorting AVUs
+  # - [Bool] Flag to indicate a data object (as opposed to a collection)
+  #
+  # Tests performed:
+  # - Exact values of method, user, and irods_user headers
+  # - Format of timestamp header
+  # - Presence of file type header (value may be an empty string)
+  # - Exact values of collection, data object and AVUs (if any) in body
+
+  my ($message, $method, $expected_body, $irods, $is_data_object) = @_;
+  my $expected_headers = 5; # timestamp, user, irods_user, type, method
+  my $expected_body_keys_total = scalar keys(%{$expected_body});
+
+  my $total_tests = 10;
+  if ($is_data_object) { $total_tests++; }
+
+  my $skip = not defined($message);
+  if ($skip) {
+    $log->logwarn('Unexpectedly got an undefined message from RabbitMQ; ',
+          'skipping subsequent tests on content of the message');
+  }
+ SKIP: {
+   # If message undefined, skip tests on content to improve readability
+   # Distinct from option to skip all RabbitMQ tests; see TestRabbitMQ.pm
+    skip "RabbitMQ message not defined", $total_tests if $skip;
+    my ($body, $headers) = @{$message};
+
+    # expected number of header/body fields
+    ok(scalar keys(%{$headers}) == $expected_headers,
+       'Found '.$expected_headers.' header key/value pairs.');
+    ok(scalar keys(%{$body}) == $expected_body_keys_total,
+       'Found '.$expected_body_keys_total.' body key/value pairs.');
+
+    # check content of headers
+    ok($headers->{'method'} eq $method, "Header method name is $method");
+    my $time = $headers->{'timestamp'};
+    ok($time =~ /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}/msx,
+       "Header timestamp '$time' is in correct format");
+    my $user = $ENV{'USER'};
+    ok($headers->{'user'} eq $user, "Header user name is $user");
+    ok($headers->{'irods_user'} eq $user, "Header iRODS user name is $user");
+    ok(defined $headers->{'type'},
+       "Header file type is defined (may be an empty string)");
+
+    # check content of body
+    ok($body->{'collection'} eq $expected_body->{'collection'},
+       'Collection matches expected value');
+    if ($is_data_object) {
+      ok($body->{'data_object'} eq $expected_body->{'data_object'},
+     'Data object matches expected value');
+    }
+    # sort AVUs to ensure consistent order for comparison
+    my @avus = $irods->sort_avus(@{$body->{'avus'}});
+    my @expected_avus = $irods->sort_avus(@{$expected_body->{'avus'}});
+    is_deeply(\@avus, \@expected_avus, 'AVUs match expected values');
+    # sort ACL to ensure consistent order for comparison
+    my @acl = $irods->sort_acl(@{$body->{'acl'}});
+    my @expected_acl = $irods->sort_acl(@{$expected_body->{'acl'}});
+    is_deeply(\@acl, \@expected_acl, 'ACL matches expected value');
+
+
+  }
+}
+
 
 1;
