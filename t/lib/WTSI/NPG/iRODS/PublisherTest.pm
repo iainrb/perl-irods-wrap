@@ -82,41 +82,63 @@ sub require : Test(1) {
   require_ok('WTSI::NPG::iRODS::Publisher');
 }
 
-sub message : Test(13) {
-  # test RabbitMQ message capability
 
-  my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
-                                    strict_baton_version => 0,
-                                    routing_key_prefix   => 'test',
-                                    hostname             => $test_host,
-                                    rmq_config_path      => $conf,
-                                    channel              => $channel,
-                                );
-
-  $irods->rmq_init();
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
-  my $filename = 'a.txt';
-  my $local_file_path  = "$tmp_data_path/publish/$filename";
-  my $remote_file_path = "$irods_tmp_coll/$filename";
-  my $file_pub = $publisher->publish($local_file_path, $remote_file_path);
-  isa_ok($file_pub, 'WTSI::NPG::iRODS::DataObject',
-         'publish, file -> returns a DataObject');
-
-  my $args = _get_subscriber_args($channel);
-  my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
-  my @messages = $subscriber->read_all($queue);
-  is(scalar @messages, 1, 'Got 1 message from queue');
-  my $message = shift @messages;
-  my @acl = $irods->get_object_permissions($remote_file_path);
-  my $body =  {avus        => [],
-               acl         => \@acl,
-               collection  => $irods_tmp_coll,
-               data_object => $filename,
-           };
-  _test_object_message($message, 'add_object', $body, $irods);
-  $irods->rmq_disconnect();
-
+sub test_message_queue : Test(2) {
+    # ensure the test message queue is working correctly
+    my $args = _get_subscriber_args($channel);
+    my $subscriber =  WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
+    my $body = ["Hello, world!", ];
+    $subscriber->publish(encode_json($body),
+                         'npg.gateway',
+                         'test.irods.report'
+                     );
+    my @messages = $subscriber->read_all($queue);
+    is(scalar @messages, 1, 'Got 1 message from queue');
+    my $message = shift @messages;
+  SKIP: {
+        # If message undefined, skip tests on content to improve readability
+        # Distinct from option to skip all RabbitMQ tests; see TestRabbitMQ.pm
+        skip "RabbitMQ message not defined", 1 if not defined $message;
+        my ($msg_body, $msg_headers) = @{$message};
+        is_deeply($msg_body, $body, 'Message body has expected value');
+    }
 }
+
+# sub message : Test(13) {
+#   # test RabbitMQ message capability
+
+#   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
+#                                     strict_baton_version => 0,
+#                                     routing_key_prefix   => 'test',
+#                                     hostname             => $test_host,
+#                                     rmq_config_path      => $conf,
+#                                     channel              => $channel,
+#                                 );
+
+#   $irods->rmq_init();
+#   my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
+#   my $filename = 'a.txt';
+#   my $local_file_path  = "$tmp_data_path/publish/$filename";
+#   my $remote_file_path = "$irods_tmp_coll/$filename";
+#   my $file_pub = $publisher->publish($local_file_path, $remote_file_path);
+#   isa_ok($file_pub, 'WTSI::NPG::iRODS::DataObject',
+#          'publish, file -> returns a DataObject');
+
+#   my $args = _get_subscriber_args($channel);
+#   my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
+#   my @messages = $subscriber->read_all($queue);
+#   is(scalar @messages, 1, 'Got 1 message from queue');
+#   my $message = shift @messages;
+#   my @acl = $irods->get_object_permissions($remote_file_path);
+#   my $body =  {avus        => [],
+#                acl         => \@acl,
+#                collection  => $irods_tmp_coll,
+#                data_object => $filename,
+#            };
+#   _test_object_message($message, 'add_object', $body, $irods);
+#   $irods->rmq_disconnect();
+
+# }
 
 sub publish : Test(8) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
