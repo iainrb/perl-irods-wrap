@@ -42,7 +42,7 @@ my $expected_headers = scalar @header_keys;
 my $test_host = $ENV{'NPG_RMQ_HOST'} || 'localhost';
 my $conf = $ENV{'NPG_RMQ_CONFIG'} || './etc/rmq_test_config.json';
 my $queue = 'test_irods_data_create_messages';
-
+my $channel = 1;   # TODO increment channel for each test?
 
 sub setup_test : Test(setup) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
@@ -59,7 +59,7 @@ sub setup_test : Test(setup) {
   $irods_tmp_coll = $irods->add_collection("PublisherTest.$pid.$test_counter");
 
   # Clear the message queue.
-  my $args = _get_subscriber_args($test_counter);
+  my $args = _get_subscriber_args($channel);
   my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
   my @messages = $subscriber->read_all($queue);
 
@@ -85,7 +85,6 @@ sub require : Test(1) {
 sub message : Test(13) {
   # test RabbitMQ message capability
 
-  my $channel = 1;   # TODO increment channel for each test?
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                     strict_baton_version => 0,
                                     routing_key_prefix   => 'test',
