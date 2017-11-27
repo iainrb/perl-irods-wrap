@@ -85,14 +85,14 @@ sub require : Test(1) {
 sub message : Test(13) {
   # test RabbitMQ message capability
 
+  my $channel = 1;   # TODO increment channel for each test?
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                     strict_baton_version => 0,
                                     routing_key_prefix   => 'test',
                                     hostname             => $test_host,
                                     rmq_config_path      => $conf,
-                                    channel              => 1,
+                                    channel              => $channel,
                                 );
-  # TODO increment channel for each test?
 
   $irods->rmq_init();
   my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
@@ -103,7 +103,7 @@ sub message : Test(13) {
   isa_ok($file_pub, 'WTSI::NPG::iRODS::DataObject',
          'publish, file -> returns a DataObject');
 
-  my $args = _get_subscriber_args($test_counter);
+  my $args = _get_subscriber_args($channel);
   my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
   my @messages = $subscriber->read_all($queue);
   is(scalar @messages, 1, 'Got 1 message from queue');
