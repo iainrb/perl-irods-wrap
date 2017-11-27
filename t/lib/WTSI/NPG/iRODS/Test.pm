@@ -34,7 +34,7 @@ sub runtests {
       }
     }
   }
-
+  my $run_tests;
   my $skip_msg; # message to print if skipping tests
   if (! defined $ENV{TEST_RABBITMQ}) {
       $run_tests = $ENV{TEST_AUTHOR};
