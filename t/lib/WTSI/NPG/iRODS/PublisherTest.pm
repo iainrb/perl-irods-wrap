@@ -87,13 +87,8 @@ sub message : Test(13) {
 
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                     strict_baton_version => 0,
-                                    routing_key_prefix   => 'test',
-                                    hostname             => $test_host,
-                                    rmq_config_path      => $conf,
-                                    channel              => $channel,
+                                    enable_rmq           => 0,
                                 );
-
-  $irods->rmq_init();
   my $publisher = WTSI::NPG::iRODS::Publisher->new(
       irods                => $irods,
       routing_key_prefix   => 'test',
@@ -122,8 +117,7 @@ sub message : Test(13) {
            };
   _test_object_message($message, 'publish', $body, $irods);
   $publisher->rmq_disconnect();
-  $irods->rmq_disconnect();
- }
+}
 
 sub publish : Test(8) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
