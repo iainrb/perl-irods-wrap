@@ -127,10 +127,13 @@ sub message : Test(13) {
 
 sub publish : Test(8) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
-                                    strict_baton_version => 0);
-
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
-
+                                    strict_baton_version => 0,
+                                    enable_rmq           => 0,
+                                );
+  my $publisher = WTSI::NPG::iRODS::Publisher->new(
+      irods      => $irods,
+      enable_rmq => 0,
+  );
   my $local_file_path  = "$tmp_data_path/publish/a.txt";
   my $remote_file_path = "$irods_tmp_coll/a.txt";
   my $file_pub = $publisher->publish($local_file_path, $remote_file_path);
@@ -163,7 +166,9 @@ sub publish : Test(8) {
 
 sub publish_file : Test(41) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
-                                    strict_baton_version => 0);
+                                    strict_baton_version => 0,
+                                    enable_rmq           => 0,
+                                );
 
   # publish_file with new full path, no metadata, no timestamp
   pf_new_full_path_no_meta_no_stamp($irods, $data_path, $irods_tmp_coll);
@@ -197,7 +202,9 @@ sub publish_file : Test(41) {
 
 sub publish_directory : Test(11) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
-                                    strict_baton_version => 0);
+                                    strict_baton_version => 0,
+                                    enable_rmq           => 0,
+                                );
 
   # publish_directory with new full path, no metadata, no timestamp
   pd_new_full_path_no_meta_no_stamp($irods, $data_path, $irods_tmp_coll);
@@ -209,7 +216,10 @@ sub publish_directory : Test(11) {
 sub pf_new_full_path_no_meta_no_stamp {
   my ($irods, $data_path, $coll_path) = @_;
 
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
+  my $publisher = WTSI::NPG::iRODS::Publisher->new(
+      irods      => $irods,
+      enable_rmq => 0,
+  );
 
   # publish_file with new full path, no metadata, no timestamp
   my $timestamp_regex = '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}';
@@ -236,7 +246,10 @@ sub pf_new_full_path_no_meta_no_stamp {
 sub pf_new_full_path_meta_no_stamp {
   my ($irods, $data_path, $coll_path) = @_;
 
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
+  my $publisher = WTSI::NPG::iRODS::Publisher->new(
+      irods      => $irods,
+      enable_rmq => 0,
+  );
 
   # publish_file with new full path, some metadata, no timestamp
   my $local_path_a = "$tmp_data_path/publish_file/a.txt";
@@ -281,7 +294,10 @@ sub pf_new_full_path_meta_no_stamp {
 sub pf_new_full_path_no_meta_stamp {
   my ($irods, $data_path, $coll_path) = @_;
 
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
+  my $publisher = WTSI::NPG::iRODS::Publisher->new(
+      irods      => $irods,
+      enable_rmq => 0,
+  );
 
   # publish_file with new full path, no metadata, no timestamp
   my $timestamp = DateTime->now;
@@ -312,7 +328,10 @@ sub pf_new_full_path_no_meta_stamp {
 sub pf_exist_full_path_no_meta_no_stamp_match {
   my ($irods, $data_path, $coll_path) = @_;
 
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
+  my $publisher = WTSI::NPG::iRODS::Publisher->new(
+      irods      => $irods,
+      enable_rmq => 0,
+  );
 
   # publish_file with existing full path, no metadata, no timestamp,
   # matching MD5
@@ -335,7 +354,10 @@ sub pf_exist_full_path_no_meta_no_stamp_match {
 sub pf_exist_full_path_meta_no_stamp_match {
   my ($irods, $data_path, $coll_path) = @_;
 
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
+  my $publisher = WTSI::NPG::iRODS::Publisher->new(
+      irods      => $irods,
+      enable_rmq => 0,
+  );
 
   # publish_file with existing full path, some metadata, no timestamp,
   # matching MD5
@@ -382,7 +404,10 @@ sub pf_exist_full_path_meta_no_stamp_match {
 sub pf_exist_full_path_no_meta_no_stamp_no_match {
   my ($irods, $data_path, $coll_path) = @_;
 
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
+  my $publisher = WTSI::NPG::iRODS::Publisher->new(
+      irods      => $irods,
+      enable_rmq => 0,
+  );
 
   # publish_file with existing full path, no metadata, no timestamp,
   # non-matching MD5
@@ -407,7 +432,10 @@ sub pf_exist_full_path_no_meta_no_stamp_no_match {
 sub pf_exist_full_path_meta_no_stamp_no_match {
   my ($irods, $data_path, $coll_path) = @_;
 
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
+  my $publisher = WTSI::NPG::iRODS::Publisher->new(
+      irods      => $irods,
+      enable_rmq => 0,
+  );
 
   # publish_file with existing full path, some metadata, no timestamp,
   # non-matching MD5
@@ -444,7 +472,10 @@ sub pf_exist_full_path_meta_no_stamp_no_match {
 sub pd_new_full_path_no_meta_no_stamp {
   my ($irods, $data_path, $coll_path) = @_;
 
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
+  my $publisher = WTSI::NPG::iRODS::Publisher->new(
+      irods => $irods,
+      enable_rmq => 0,
+  );
 
   # publish_directory with new full path, no metadata, no timestamp
   my $timestamp_regex = '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}';
@@ -470,7 +501,10 @@ sub pd_new_full_path_no_meta_no_stamp {
 sub pd_new_full_path_meta_no_stamp {
   my ($irods, $data_path, $coll_path) = @_;
 
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(irods => $irods);
+  my $publisher = WTSI::NPG::iRODS::Publisher->new(
+      irods => $irods,
+      enable_rmq => 0,
+  );
 
   # publish_directory with new full path, no metadata, no timestamp
   my $timestamp_regex = '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}';
@@ -512,6 +546,7 @@ sub pf_stale_md5_cache {
   my $cache_timeout = 10;
   my $publisher = WTSI::NPG::iRODS::Publisher->new
     (irods                     => $irods,
+     enable_rmq                => 0,
      checksum_cache_time_delta => $cache_timeout);
 
   my $local_path_c = "$tmp_data_path/publish_file/c.txt";
