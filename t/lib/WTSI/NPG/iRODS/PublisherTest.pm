@@ -105,12 +105,13 @@ sub message : Test(13) {
          'publish, file -> returns a DataObject');
 
   my $args = _get_subscriber_args($channel);
-   my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
+  my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
   my @messages = $subscriber->read_all($queue);
   is(scalar @messages, 1, 'Got 1 message from queue');
   my $message = shift @messages;
+  my @avus = $irods->get_object_meta($remote_file_path);
   my @acl = $irods->get_object_permissions($remote_file_path);
-  my $body =  {avus        => [],
+  my $body =  {avus        => \@avus,
                acl         => \@acl,
                collection  => $irods_tmp_coll,
                data_object => $filename,
