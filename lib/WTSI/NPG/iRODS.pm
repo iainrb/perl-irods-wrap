@@ -161,8 +161,7 @@ has '_permissions_cache' =>
    documentation => 'A cache mapping known iRODS paths to their permissions');
 
 with 'WTSI::DNAP::Utilities::Loggable',
-     'WTSI::NPG::iRODS::Utilities',
-     'WTSI::NPG::iRODS::Reportable::iRODSMQ';
+     'WTSI::NPG::iRODS::Utilities';
 
 sub BUILD {
   my ($self) = @_;

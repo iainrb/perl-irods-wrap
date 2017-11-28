@@ -47,7 +47,6 @@ my $channel = 1;   # TODO increment channel for each test?
 sub setup_test : Test(setup) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                     strict_baton_version => 0,
-                                    enable_rmq => 0,
                                 );
   $cwc = $irods->working_collection;
 
@@ -69,7 +68,6 @@ sub setup_test : Test(setup) {
 sub teardown_test : Test(teardown) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                     strict_baton_version => 0,
-                                    enable_rmq => 0,
                                 );
   # Delete the copy of the test data
   undef $tmp_data_path;
@@ -87,7 +85,6 @@ sub message : Test(13) {
 
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                     strict_baton_version => 0,
-                                    enable_rmq           => 0,
                                 );
   my $publisher = WTSI::NPG::iRODS::Publisher->new(
       irods                => $irods,
@@ -123,7 +120,6 @@ sub message : Test(13) {
 sub publish : Test(8) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                     strict_baton_version => 0,
-                                    enable_rmq           => 0,
                                 );
   my $publisher = WTSI::NPG::iRODS::Publisher->new(
       irods      => $irods,
@@ -162,7 +158,6 @@ sub publish : Test(8) {
 sub publish_file : Test(41) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                     strict_baton_version => 0,
-                                    enable_rmq           => 0,
                                 );
 
   # publish_file with new full path, no metadata, no timestamp
@@ -198,7 +193,6 @@ sub publish_file : Test(41) {
 sub publish_directory : Test(11) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                     strict_baton_version => 0,
-                                    enable_rmq           => 0,
                                 );
 
   # publish_directory with new full path, no metadata, no timestamp
