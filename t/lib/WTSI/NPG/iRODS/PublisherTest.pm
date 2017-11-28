@@ -118,9 +118,9 @@ sub message : Test(13) {
   my $body =  {avus        => [],
                acl         => \@acl,
                collection  => $irods_tmp_coll,
-                data_object => $filename,
+               data_object => $filename,
            };
-  _test_object_message($message, 'add_object', $body, $irods);
+  _test_object_message($message, 'publish', $body, $irods);
   $publisher->rmq_disconnect();
   $irods->rmq_disconnect();
  }
