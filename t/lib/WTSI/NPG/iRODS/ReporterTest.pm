@@ -49,6 +49,7 @@ sub setup_test : Test(setup) {
     # in a given queue and channel, eg. from previous failed tests.
     # (Assigning a unique queue name would need reconfiguration of the
     # RabbitMQ test server.)
+    my ($self,) = @_;
     $test_counter++;
     my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
