@@ -32,7 +32,7 @@ sub runtests {
         $skip_msg = 'TEST_RABBITMQ environment variable is false';
     }
     if (! $run_tests) {
-        diag('Omitting RabbitMQ tests: Either TEST_RABBITMQ is set to ',
+        diag('Omitting test class: Either TEST_RABBITMQ is set to ',
              'false; or TEST_RABBITMQ is not set, and TEST_AUTHOR ',
              'is false or not set');
         $self->SKIP_CLASS($skip_msg);
