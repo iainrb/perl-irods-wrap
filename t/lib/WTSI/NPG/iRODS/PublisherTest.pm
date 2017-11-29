@@ -38,6 +38,9 @@ my $cwc;
 my $test_host = $ENV{'NPG_RMQ_HOST'} || 'localhost';
 my $conf = $ENV{'NPG_RMQ_CONFIG'} || './etc/rmq_test_config.json';
 my $queue = 'test_irods_data_create_messages';
+my $tmp_data_path;
+
+my $channel = 1;
 
 sub setup_test : Test(setup) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
