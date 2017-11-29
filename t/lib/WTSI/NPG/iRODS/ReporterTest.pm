@@ -104,6 +104,7 @@ sub test_message_queue : Test(2) {
 ### collection tests ###
 
 sub test_add_collection : Test(11) {
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -133,7 +134,7 @@ sub test_add_collection : Test(11) {
 }
 
 sub test_collection_avu : Test(31) {
-
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -185,7 +186,7 @@ sub test_collection_avu : Test(31) {
 }
 
 sub test_put_move_collection : Test(21) {
-
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -229,6 +230,7 @@ sub test_put_move_collection : Test(21) {
 }
 
 sub test_remove_collection : Test(11) {
+    my ($self,) = @_;
     my $irods_no_rmq = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -264,6 +266,7 @@ sub test_remove_collection : Test(11) {
 }
 
 sub test_set_collection_permissions : Test(21) {
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -313,7 +316,7 @@ sub test_set_collection_permissions : Test(21) {
 ### data object tests ###
 
 sub test_add_object : Test(12) {
-
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -339,12 +342,12 @@ sub test_add_object : Test(12) {
          collection  => $irods_tmp_coll,
          data_object => $copied_filename,
            };
-    _test_object_message($message, 'add_object', $body, $irods);
+    $self->rmq_test_object_message($message, 'add_object', $body, $irods);
     $irods->rmq_disconnect();
 }
 
 sub test_copy_object : Test(12) {
-
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -370,12 +373,12 @@ sub test_copy_object : Test(12) {
          collection  => $irods_tmp_coll,
          data_object => $copied_filename,
            };
-    _test_object_message($message, 'copy_object', $body, $irods);
+    $self->rmq_test_object_message($message, 'copy_object', $body, $irods);
     $irods->rmq_disconnect();
 }
 
 sub test_move_object : Test(12) {
-
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -401,12 +404,12 @@ sub test_move_object : Test(12) {
          collection  => $irods_tmp_coll,
          data_object => $moved_filename,
            };
-    _test_object_message($message, 'move_object', $body, $irods);
+    $self->rmq_test_object_message($message, 'move_object', $body, $irods);
     $irods->rmq_disconnect();
 }
 
 sub test_object_avu : Test(34) {
-
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -449,14 +452,14 @@ sub test_object_avu : Test(34) {
             data_object => $test_filename,
             collection  => $irods_tmp_coll,
            };
-        _test_object_message($messages[$i], $methods[$i], $body, $irods);
+        $self->rmq_test_object_message($messages[$i], $methods[$i], $body, $irods);
         $i++;
     }
     $irods->rmq_disconnect();
 }
 
 sub test_remove_object : Test(12) {
-
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -481,12 +484,12 @@ sub test_remove_object : Test(12) {
          data_object => $test_filename,
          collection  => $irods_tmp_coll,
            };
-    _test_object_message($message, $method, $body, $irods);
+    $self->rmq_test_object_message($message, $method, $body, $irods);
     $irods->rmq_disconnect();
 }
 
 sub test_replace_object : Test(12) {
-
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -510,12 +513,13 @@ sub test_replace_object : Test(12) {
          data_object => $test_filename,
          collection  => $irods_tmp_coll,
            };
-    _test_object_message($message, 'replace_object', $body, $irods);
+    $self->rmq_test_object_message($message, 'replace_object', $body, $irods);
     $irods->rmq_disconnect();
 }
 
 sub test_set_object_permissions : Test(23) {
     # change permissions on a data object, with messaging
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -552,14 +556,15 @@ sub test_set_object_permissions : Test(23) {
     is(scalar @messages, 2, 'Got 2 messages from queue');
     my $method = 'set_object_permissions';
 
-    _test_object_message($messages[0], $method, $body_null, $irods);
-    _test_object_message($messages[1], $method, $body_own, $irods);
+    $self->rmq_test_object_message($messages[0], $method, $body_null, $irods);
+    $self->rmq_test_object_message($messages[1], $method, $body_own, $irods);
     $irods->rmq_disconnect();
 }
 
 ### methods for the Publisher class ###
 
 sub test_publish_object : Test(14) {
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -595,11 +600,12 @@ sub test_publish_object : Test(14) {
         collection  => $irods_tmp_coll,
         data_object => $published_filename,
            };
-    _test_object_message($message, $method, $body, $irods);
+    $self->rmq_test_object_message($message, $method, $body, $irods);
     $publisher->rmq_disconnect();
 }
 
 sub test_publish_collection : Test(13) {
+    my ($self,) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -637,6 +643,7 @@ sub test_publish_collection : Test(13) {
     $self->rmq_test_collection_message($message, $method, $body, $irods);
     $publisher->rmq_disconnect();
 }
+
 
 
 1;
