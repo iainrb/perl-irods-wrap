@@ -34,26 +34,6 @@ sub runtests {
       }
     }
   }
-  my $run_tests;
-  my $skip_msg; # message to print if skipping tests
-  if (! defined $ENV{TEST_RABBITMQ}) {
-      $run_tests = $ENV{TEST_AUTHOR};
-      $skip_msg = 'TEST_RABBITMQ environment variable not set; '.
-          'TEST_AUTHOR false or not set'
-      } else {
-          $run_tests = $ENV{TEST_RABBITMQ};
-          $skip_msg = 'TEST_RABBITMQ environment variable is false';
-      }
-  if (! $run_tests) {
-      diag('Omitting RabbitMQ tests: Either TEST_RABBITMQ is set to ',
-           'false; or TEST_RABBITMQ is not set, and TEST_AUTHOR ',
-           'is false or not set');
-      $self->SKIP_CLASS($skip_msg);
-  } else {
-      # optional modules, needed for RabbitMQ tests
-      require WTSI::NPG::iRODSMQTest;
-      require WTSI::NPG::RabbitMQ::TestCommunicator;
-  }
 
   {
     local %ENV = %env_copy;
