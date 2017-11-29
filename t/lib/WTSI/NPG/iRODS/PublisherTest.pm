@@ -14,7 +14,7 @@ use Test::Exception;
 use Test::More;
 use URI;
 
-use base qw[WTSI::NPG::iRODS::Test];
+use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
 
 Log::Log4perl::init('./etc/log4perl_tests.conf');
 
@@ -82,39 +82,57 @@ sub require : Test(1) {
 
 sub message : Test(13) {
   # test RabbitMQ message capability
+  # if RabbitMQ testing not enabled, skip this test only
+  # same enable/disable logic as in WTSI::NPG::iRODS::Test
+  # distinct from skipping an entire test class; see TestRabbitMQ.pm
+  my $run_tests;
+  my $skip_msg;
+  if (! defined $ENV{TEST_RABBITMQ}) {
+    $run_tests = $ENV{TEST_AUTHOR};
+    $skip_msg = 'TEST_RABBITMQ environment variable not set; '.
+        'TEST_AUTHOR false or not set'
+  } else {
+      $run_tests = $ENV{TEST_RABBITMQ};
+      $skip_msg = 'TEST_RABBITMQ environment variable is false';
+  }
 
-  my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
-                                    strict_baton_version => 0,
-                                );
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(
-      irods                => $irods,
-      routing_key_prefix   => 'test',
-      hostname             => $test_host,
-      rmq_config_path      => $conf,
-      channel              => $channel,
-  );
-  $publisher->rmq_init();
-  my $filename = 'a.txt';
-  my $local_file_path  = "$tmp_data_path/publish/$filename";
-  my $remote_file_path = "$irods_tmp_coll/$filename";
-  my $file_pub = $publisher->publish($local_file_path, $remote_file_path);
-  isa_ok($file_pub, 'WTSI::NPG::iRODS::DataObject',
-         'publish, file -> returns a DataObject');
+  SKIP: {
 
-  my $args = _get_subscriber_args($channel);
-  my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
-  my @messages = $subscriber->read_all($queue);
-  is(scalar @messages, 1, 'Got 1 message from queue');
-  my $message = shift @messages;
-  my @avus = $irods->get_object_meta($remote_file_path);
-  my @acl = $irods->get_object_permissions($remote_file_path);
-  my $body =  {avus        => \@avus,
-               acl         => \@acl,
-               collection  => $irods_tmp_coll,
-               data_object => $filename,
-           };
-  _test_object_message($message, 'publish', $body, $irods);
-  $publisher->rmq_disconnect();
+    skip $skip_msg, 13 if !($run_tests);
+
+    my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
+                                      strict_baton_version => 0,
+                                  );
+    my $publisher = WTSI::NPG::iRODS::Publisher->new(
+        irods                => $irods,
+        routing_key_prefix   => 'test',
+        hostname             => $test_host,
+        rmq_config_path      => $conf,
+        channel              => $channel,
+    );
+    $publisher->rmq_init();
+    my $filename = 'a.txt';
+    my $local_file_path  = "$tmp_data_path/publish/$filename";
+    my $remote_file_path = "$irods_tmp_coll/$filename";
+    my $file_pub = $publisher->publish($local_file_path, $remote_file_path);
+    isa_ok($file_pub, 'WTSI::NPG::iRODS::DataObject',
+           'publish, file -> returns a DataObject');
+
+    my $args = _get_subscriber_args($channel);
+    my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
+    my @messages = $subscriber->read_all($queue);
+    is(scalar @messages, 1, 'Got 1 message from queue');
+    my $message = shift @messages;
+    my @avus = $irods->get_object_meta($remote_file_path);
+    my @acl = $irods->get_object_permissions($remote_file_path);
+    my $body =  {avus        => \@avus,
+                 acl         => \@acl,
+                 collection  => $irods_tmp_coll,
+                 data_object => $filename,
+             };
+    _test_object_message($message, 'publish', $body, $irods);
+    $publisher->rmq_disconnect();
+  }
 }
 
 sub publish : Test(8) {

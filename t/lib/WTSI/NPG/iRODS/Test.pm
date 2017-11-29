@@ -52,7 +52,6 @@ sub runtests {
   } else {
       # optional modules, needed for RabbitMQ tests
       require WTSI::NPG::iRODSMQTest;
-      require WTSI::NPG::PublisherMQTest;
       require WTSI::NPG::RabbitMQ::TestCommunicator;
   }
 
