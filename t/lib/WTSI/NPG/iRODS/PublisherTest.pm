@@ -59,7 +59,7 @@ sub setup_test : Test(setup) {
   $irods_tmp_coll = $irods->add_collection("PublisherTest.$pid.$test_counter");
 
   # Clear the message queue.
-  my $args = $self->rmq_get_subscriber_args($channel, $conf, $test_host);
+  my $args = $self->rmq_subscriber_args($channel, $conf, $test_host);
   my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
   my @messages = $subscriber->read_all($queue);
 
