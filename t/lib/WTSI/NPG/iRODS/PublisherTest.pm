@@ -14,7 +14,7 @@ use Test::Exception;
 use Test::More;
 use URI;
 
-use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
+use base qw[WTSI::NPG::iRODS::Test];
 
 Log::Log4perl::init('./etc/log4perl_tests.conf');
 
