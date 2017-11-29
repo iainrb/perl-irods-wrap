@@ -9,40 +9,15 @@ use English qw[-no_match_vars];
 use File::Copy::Recursive qw[dircopy];
 use File::Spec::Functions;
 use File::Temp;
-use Log::Log4perl;
 use Test::Exception;
-use Test::More;
 use URI;
 
 use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
-
-Log::Log4perl::init('./etc/log4perl_tests.conf');
-
-my $log = Log::Log4perl::get_logger();
 
 use WTSI::NPG::iRODS::DataObject;
 use WTSI::NPG::iRODS::Metadata;
 use WTSI::NPG::iRODS::Publisher;
 
-my $pid          = $PID;
-my $test_counter = 0;
-my $data_path    = './t/data/publisher';
-
-my $tmp_data_path;
-my $irods_tmp_coll;
-my $cwc;
-
-# RabbitMQ variables
-my @header_keys = qw[timestamp
-                     user
-                     irods_user
-                     type
-                     method];
-my $expected_headers = scalar @header_keys;
-my $test_host = $ENV{'NPG_RMQ_HOST'} || 'localhost';
-my $conf = $ENV{'NPG_RMQ_CONFIG'} || './etc/rmq_test_config.json';
-my $queue = 'test_irods_data_create_messages';
-my $channel = 1;   # TODO increment channel for each test?
 
 sub setup_test : Test(setup) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
