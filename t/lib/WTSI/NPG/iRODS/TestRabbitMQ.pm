@@ -5,32 +5,15 @@ use warnings;
 
 use base qw(WTSI::NPG::iRODS::Test);
 
-use English qw[-no_match_vars];
 use Log::Log4perl;
 use Test::More;
 
 Log::Log4perl::init('./etc/log4perl_tests.conf');
-our $log = Log::Log4perl::get_logger();
 
-our $pid          = $PID;
-our $test_counter = 0;
-our $data_path    = './t/data/reporter';
-
-our @header_keys = qw[timestamp
-                     user
-                     irods_user
-                     type
-                     method];
-our $expected_headers = scalar @header_keys;
-
-our $test_filename = 'lorem.txt';
-our $irods_tmp_coll;
-our $remote_file_path;
-our $cwc;
-our $test_host = $ENV{'NPG_RMQ_HOST'} || 'localhost';
-our $conf = $ENV{'NPG_RMQ_CONFIG'} || './etc/rmq_test_config.json';
-our $queue = 'test_irods_data_create_messages';
-
+# variables to be defined in child classes
+my $log;
+my $conf;
+my $test_host;
 
 # Run full tests (requiring a test RabbitMQ server) only if specified by
 # environment variables:
