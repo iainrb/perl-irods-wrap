@@ -46,7 +46,7 @@ sub runtests {
 
 
 sub rmq_subscriber_args {
-    my ($channel, $conf, $test_host) = @_;
+    my ($self, $channel, $conf, $test_host) = @_;
     my $args = {
         hostname             => $test_host, # global variable
         rmq_config_path      => $conf,      # global variable
@@ -56,15 +56,15 @@ sub rmq_subscriber_args {
 }
 
 sub rmq_test_collection_message {
-    my ($message, $method, $expected_body, $irods) = @_;
+    my ($self, $message, $method, $expected_body, $irods) = @_;
     # 10 tests in total
-    return _test_message($message, $method, $expected_body, $irods, 0);
+    return $self->_test_message($message, $method, $expected_body, $irods, 0);
 }
 
 sub rmq_test_object_message {
-    my ($message, $method, $expected_body, $irods) = @_;
+    my ($self, $message, $method, $expected_body, $irods) = @_;
     # 11 tests in total
-    return _test_message($message, $method, $expected_body, $irods, 1);
+    return $self->_test_message($message, $method, $expected_body, $irods, 1);
 }
 
 sub _test_message {
@@ -85,7 +85,7 @@ sub _test_message {
   # - Presence of file type header (value may be an empty string)
   # - Exact values of collection, data object and AVUs (if any) in body
 
-  my ($message, $method, $expected_body, $irods, $is_data_object) = @_;
+  my ($self, $message, $method, $expected_body, $irods, $is_data_object) = @_;
 
   my $log = Log::Log4perl::get_logger();
 
