@@ -83,6 +83,7 @@ sub require : Test(1) {
 
 sub test_message_queue : Test(2) {
     # ensure the test message queue is working correctly
+    my ($self,) = @_;
     my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber =  WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my $body = ["Hello, world!", ];
