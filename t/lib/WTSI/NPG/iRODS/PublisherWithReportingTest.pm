@@ -3,6 +3,15 @@ package WTSI::NPG::iRODS::PublisherWithReportingTest;
 use strict;
 use warnings;
 
+use Carp;
+use English qw[-no_match_vars];
+use File::Copy::Recursive qw[dircopy];
+use File::Temp;
+use JSON;
+use Log::Log4perl;
+use Test::Exception;
+use Test::More;
+
 use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
 
 Log::Log4perl::init('./etc/log4perl_tests.conf');
@@ -73,14 +82,13 @@ sub message : Test(13) {
   my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                     strict_baton_version => 0,
                                 );
-  my $publisher = WTSI::NPG::iRODS::Publisher->new(
+  my $publisher = WTSI::NPG::iRODS::PublisherWithReporting->new(
       irods                => $irods,
       routing_key_prefix   => 'test',
       hostname             => $test_host,
       rmq_config_path      => $conf,
       channel              => $channel,
   );
-  $publisher->rmq_init();
   my $filename = 'a.txt';
   my $local_file_path  = "$tmp_data_path/publish/$filename";
   my $remote_file_path = "$irods_tmp_coll/$filename";
@@ -101,5 +109,4 @@ sub message : Test(13) {
                data_object => $filename,
            };
   $self->rmq_test_object_message($message, 'publish', $body, $irods);
-  $publisher->rmq_disconnect();
 }
