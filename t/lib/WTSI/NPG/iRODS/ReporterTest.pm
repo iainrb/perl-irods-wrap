@@ -46,6 +46,7 @@ sub setup_test : Test(setup) {
     # in a given queue and channel, eg. from previous failed tests.
     # (Assigning a unique queue name would need reconfiguration of the
     # RabbitMQ test server.)
+    my ($self, ) = @_;
     $test_counter++;
     my $args = $self->rmq_subscriber_args($test_counter);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
@@ -64,6 +65,7 @@ sub setup_test : Test(setup) {
 }
 
 sub teardown_test : Test(teardown) {
+    my ($self, ) = @_;
     # messaging disabled for test teardown
     my $irods = WTSI::NPG::iRODSMQTest->new(environment          => \%ENV,
                         strict_baton_version => 0,
@@ -74,6 +76,7 @@ sub teardown_test : Test(teardown) {
 }
 
 sub test_message_queue : Test(2) {
+    my ($self, ) = @_;
     # ensure the test message queue is working correctly
     my $args = $self->rmq_subscriber_args($test_counter);
     my $subscriber =  WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
@@ -97,6 +100,7 @@ sub test_message_queue : Test(2) {
 ### collection tests ###
 
 sub test_add_collection : Test(11) {
+    my ($self, ) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -126,7 +130,7 @@ sub test_add_collection : Test(11) {
 }
 
 sub test_collection_avu : Test(31) {
-
+    my ($self, ) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -178,7 +182,7 @@ sub test_collection_avu : Test(31) {
 }
 
 sub test_put_move_collection : Test(21) {
-
+    my ($self, ) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -222,6 +226,7 @@ sub test_put_move_collection : Test(21) {
 }
 
 sub test_remove_collection : Test(11) {
+    my ($self, ) = @_;
     my $irods_no_rmq = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -257,6 +262,7 @@ sub test_remove_collection : Test(11) {
 }
 
 sub test_set_collection_permissions : Test(21) {
+    my ($self, ) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -306,7 +312,7 @@ sub test_set_collection_permissions : Test(21) {
 ### data object tests ###
 
 sub test_add_object : Test(12) {
-
+    my ($self, ) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -337,7 +343,7 @@ sub test_add_object : Test(12) {
 }
 
 sub test_copy_object : Test(12) {
-
+    my ($self, ) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -368,7 +374,7 @@ sub test_copy_object : Test(12) {
 }
 
 sub test_move_object : Test(12) {
-
+    my ($self, ) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -399,7 +405,7 @@ sub test_move_object : Test(12) {
 }
 
 sub test_object_avu : Test(34) {
-
+    my ($self, ) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -451,7 +457,7 @@ sub test_object_avu : Test(34) {
 }
 
 sub test_remove_object : Test(12) {
-
+    my ($self, ) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -481,7 +487,7 @@ sub test_remove_object : Test(12) {
 }
 
 sub test_replace_object : Test(12) {
-
+    my ($self, ) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -510,6 +516,7 @@ sub test_replace_object : Test(12) {
 }
 
 sub test_set_object_permissions : Test(23) {
+    my ($self, ) = @_;
     # change permissions on a data object, with messaging
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
@@ -555,6 +562,7 @@ sub test_set_object_permissions : Test(23) {
 ### methods for the Publisher class ###
 
 sub test_publish_object : Test(14) {
+    my ($self, ) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
@@ -593,6 +601,7 @@ sub test_publish_object : Test(14) {
 }
 
 sub test_publish_collection : Test(13) {
+    my ($self, ) = @_;
     my $irods = WTSI::NPG::iRODSMQTest->new
       (environment          => \%ENV,
        strict_baton_version => 0,
