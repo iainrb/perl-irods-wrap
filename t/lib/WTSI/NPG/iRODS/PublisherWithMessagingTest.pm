@@ -1,4 +1,4 @@
-package WTSI::NPG::iRODS::PublisherWithMessagingTest;
+package WTSI::NPG::iRODS::PublisherWithReportingTest;
 
 use strict;
 use warnings;
@@ -8,9 +8,6 @@ use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
 Log::Log4perl::init('./etc/log4perl_tests.conf');
 
 my $log = Log::Log4perl::get_logger();
-
-# load RabbitMQ class at runtime; avoids error if prerequisites not installed
-require WTSI::NPG::iRODS::PublisherWithMessaging;
 
 my $pid          = $PID;
 my $test_counter = 0;
@@ -67,7 +64,7 @@ sub teardown_test : Test(teardown) {
 
 
 sub require : Test(1) {
-  require_ok('WTSI::NPG::iRODS::PublisherWithMessaging');
+  require_ok('WTSI::NPG::iRODS::PublisherWithReporting');
 }
 
 sub message : Test(13) {
