@@ -1,5 +1,9 @@
 package WTSI::NPG::iRODS::PublisherWithReporting;
 
+use Moose;
+
+our $VERSION = '';
+
 extends 'WTSI::NPG::iRODS::Publisher';
 
 with 'WTSI::NPG::iRODS::Reportable::PublisherMQ';
