@@ -73,10 +73,6 @@ sub teardown_test : Test(teardown) {
     $irods->remove_collection($irods_tmp_coll);
 }
 
-sub require : Test(1) {
-  require_ok('WTSI::NPG::iRODS::Publisher');
-}
-
 sub test_message_queue : Test(2) {
     # ensure the test message queue is working correctly
     my $args = _get_subscriber_args($test_counter);
@@ -557,7 +553,7 @@ sub test_publish_object : Test(14) {
        enable_rmq           => 0,
       );
     my $user = 'public';
-    my $publisher = WTSI::NPG::PublisherMQTest->new
+    my $publisher = WTSI::NPG::PublisherWithMessaging->new
       (
        irods                => $irods,
        routing_key_prefix   => 'test',
@@ -597,7 +593,7 @@ sub test_publish_collection : Test(13) {
        enable_rmq           => 0,
       );
     my $user = 'public';
-    my $publisher = WTSI::NPG::PublisherMQTest->new
+    my $publisher = WTSI::NPG::PublisherWithMessaging->new
       (
        irods                => $irods,
        routing_key_prefix   => 'test',
