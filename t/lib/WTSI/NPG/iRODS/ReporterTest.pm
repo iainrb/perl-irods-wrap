@@ -48,7 +48,7 @@ sub setup_test : Test(setup) {
     # RabbitMQ test server.)
     my ($self, ) = @_;
     $test_counter++;
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     # messaging disabled for test setup
@@ -78,7 +78,7 @@ sub teardown_test : Test(teardown) {
 sub test_message_queue : Test(2) {
     my ($self, ) = @_;
     # ensure the test message queue is working correctly
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber =  WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my $body = ["Hello, world!", ];
     $subscriber->publish(encode_json($body),
@@ -113,7 +113,7 @@ sub test_add_collection : Test(11) {
     my $irods_new_coll = $irods_tmp_coll.'/temp';
     $irods->add_collection($irods_new_coll);
 
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
@@ -144,7 +144,7 @@ sub test_collection_avu : Test(31) {
     $irods->add_collection_avu($irods_tmp_coll, 'colour', 'purple');
     $irods->remove_collection_avu($irods_tmp_coll, 'colour', 'green');
 
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     my $expected_messages = 3;
@@ -207,7 +207,7 @@ sub test_put_move_collection : Test(21) {
                       collection => $moved_coll,
            };
 
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 2, 'Got 2 messages from queue');
@@ -246,7 +246,7 @@ sub test_remove_collection : Test(11) {
     $irods->rmq_init();
     my @acl = $irods->get_collection_permissions($irods_new_coll);
     $irods->remove_collection($irods_new_coll);
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
@@ -292,7 +292,7 @@ sub test_set_collection_permissions : Test(21) {
                     collection => $irods_tmp_coll,
                 };
 
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 2, 'Got 2 messages from queue');
@@ -326,7 +326,7 @@ sub test_add_object : Test(12) {
     my $added_remote_path = "$irods_tmp_coll/$copied_filename";
     $irods->add_object("$data_path/$test_filename", $added_remote_path);
 
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
 
@@ -357,7 +357,7 @@ sub test_copy_object : Test(12) {
     my $copied_remote_path = "$irods_tmp_coll/$copied_filename";
     $irods->copy_object($remote_file_path, $copied_remote_path);
 
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
@@ -388,7 +388,7 @@ sub test_move_object : Test(12) {
     my $moved_remote_path = "$irods_tmp_coll/$moved_filename";
     $irods->move_object($remote_file_path, $moved_remote_path);
 
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
@@ -419,7 +419,7 @@ sub test_object_avu : Test(34) {
     $irods->add_object_avu($remote_file_path, 'colour', 'purple');
     $irods->remove_object_avu($remote_file_path, 'colour', 'green');
 
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     my $expected_messages = 3;
@@ -469,7 +469,7 @@ sub test_remove_object : Test(12) {
     $irods->rmq_init();
     my @acl = $irods->get_object_permissions($remote_file_path);
     $irods->remove_object($remote_file_path);
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
 
@@ -499,7 +499,7 @@ sub test_replace_object : Test(12) {
     $irods->rmq_init();
     $irods->replace_object("$data_path/$test_filename", $remote_file_path);
 
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
@@ -548,7 +548,7 @@ sub test_set_object_permissions : Test(23) {
                     collection  => $irods_tmp_coll,
                     data_object => $test_filename,
                  };
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 2, 'Got 2 messages from queue');
@@ -585,7 +585,7 @@ sub test_publish_object : Test(14) {
     ok($irods->is_object($remote_file_path), 'File published to iRODS');
     ok($remote_file_path eq $pub_obj->absolute()->str(),
        'Absolute data object paths from input and return value are equal');
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
@@ -622,7 +622,7 @@ sub test_publish_collection : Test(13) {
     ok($irods->is_collection($dest_coll), 'Collection published to iRODS');
     ok($dest_coll eq $pub_coll->absolute()->str(),
        'Absolute collection paths from input and return value are equal');
-    my $args = $self->rmq_subscriber_args($test_counter);
+    my $args = $self->rmq_subscriber_args($test_counter, $conf, $test_host);
     my $subscriber = WTSI::NPG::RabbitMQ::TestCommunicator->new($args);
     my @messages = $subscriber->read_all($queue);
     is(scalar @messages, 1, 'Got 1 message from queue');
