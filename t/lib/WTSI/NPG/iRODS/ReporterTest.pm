@@ -553,7 +553,7 @@ sub test_publish_object : Test(14) {
        enable_rmq           => 0,
       );
     my $user = 'public';
-    my $publisher = WTSI::NPG::PublisherWithMessaging->new
+    my $publisher = WTSI::NPG::PublisherWithReporting->new
       (
        irods                => $irods,
        routing_key_prefix   => 'test',
@@ -593,7 +593,7 @@ sub test_publish_collection : Test(13) {
        enable_rmq           => 0,
       );
     my $user = 'public';
-    my $publisher = WTSI::NPG::PublisherWithMessaging->new
+    my $publisher = WTSI::NPG::PublisherWithReporting->new
       (
        irods                => $irods,
        routing_key_prefix   => 'test',

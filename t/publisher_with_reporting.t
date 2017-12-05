@@ -2,6 +2,6 @@
 use strict;
 use warnings;
 
-use WTSI::NPG::iRODS::PublisherWithMessagingTest;
+use WTSI::NPG::iRODS::PublisherWithReportingTest;
 
-WTSI::NPG::iRODS::PublisherWithMessagingTest->runtests;
+WTSI::NPG::iRODS::PublisherWithReportingTest->runtests;

@@ -38,7 +38,7 @@ sub runtests {
         $self->SKIP_CLASS($skip_msg);
     } else {
 	# modules needed for RabbitMQ tests
-        require WTSI::NPG::iRODS::PublisherWithMessaging;
+        require WTSI::NPG::iRODS::PublisherWithReporting;
 	require WTSI::NPG::iRODSMQTest;
 	require WTSI::NPG::RabbitMQ::TestCommunicator;
     }
