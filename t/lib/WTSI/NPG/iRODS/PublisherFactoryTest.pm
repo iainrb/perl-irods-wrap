@@ -18,7 +18,7 @@ sub require : Test(1) {
     require_ok('WTSI::NPG::iRODS::DataObject');
 }
 
-sub make_publishers : Test(4) {
+sub make_publishers : Test(3) {
 
     my $factory = WTSI::NPG::iRODS::PublisherFactory->new();
 
@@ -28,16 +28,9 @@ sub make_publishers : Test(4) {
 
     my $publisher;
     local %ENV = %ENV;
-    my $config = $ENV{NPG_RMQ_CONFIG};
-    $ENV{NPG_RMQ_ENABLE} = 1;
-    $ENV{NPG_RMQ_CONFIG} = 0;
+    $ENV{NPG_RMQ_CONFIG} ||= './etc/rmq_test_config.json';
     $publisher = $factory->make_publisher($args);
     isa_ok($publisher, 'WTSI::NPG::iRODS::PublisherWithReporting');
-    $ENV{NPG_RMQ_ENABLE} = 0;
-    $ENV{NPG_RMQ_CONFIG} = $config || './etc/rmq_test_config.json';
-    $publisher = $factory->make_publisher($args);
-    isa_ok($publisher, 'WTSI::NPG::iRODS::PublisherWithReporting');
-    $ENV{NPG_RMQ_ENABLE} = 0;
     $ENV{NPG_RMQ_CONFIG} = 0;
     $publisher = $factory->make_publisher($args);
     isa_ok($publisher, 'WTSI::NPG::iRODS::Publisher');

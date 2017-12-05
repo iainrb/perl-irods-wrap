@@ -24,7 +24,7 @@ sub make_publisher {
     my @args;
     if ( defined $args ) { @args = @{$args}; }
     my $publisher;
-    if ($ENV{NPG_RMQ_ENABLE} || $ENV{NPG_RMQ_CONFIG}) {
+    if ($ENV{NPG_RMQ_CONFIG}) {
         # 'require' ensures PublisherWithReporting not used unless wanted
         # eg. prerequisite module Net::AMQP::RabbitMQ may not be present
         require WTSI::NPG::iRODS::PublisherWithReporting;
@@ -67,8 +67,8 @@ WTSI::NPG::iRODS::Publisher otherwise.
 
 =back
 
-RabbitMQ is enabled if at least one of the environment variables
-NPG_RMQ_ENABLE or NPG_RMQ_CONFIG is set to a true value; disabled otherwise.
+RabbitMQ is enabled if the environment variable NPG_RMQ_CONFIG is set
+to a true value; disabled otherwise.
 
 
 =head1 AUTHOR
