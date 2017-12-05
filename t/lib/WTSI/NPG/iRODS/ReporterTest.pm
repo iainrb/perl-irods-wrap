@@ -12,6 +12,8 @@ use Test::More;
 
 use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
 
+require WTSI::NPG::iRODS::PublisherWithReporting;
+
 Log::Log4perl::init('./etc/log4perl_tests.conf');
 
 my $log = Log::Log4perl::get_logger();
@@ -553,7 +555,7 @@ sub test_publish_object : Test(14) {
        enable_rmq           => 0,
       );
     my $user = 'public';
-    my $publisher = WTSI::NPG::PublisherWithReporting->new
+    my $publisher = WTSI::NPG::iRODS::PublisherWithReporting->new
       (
        irods                => $irods,
        routing_key_prefix   => 'test',
@@ -561,7 +563,6 @@ sub test_publish_object : Test(14) {
        rmq_config_path      => $conf,
        channel              => $test_counter,
       );
-    $publisher->rmq_init();
     my $published_filename = 'ipsum.txt';
     my $remote_file_path = "$irods_tmp_coll/$published_filename";
     $remote_file_path = $irods->absolute_path($remote_file_path);
@@ -583,7 +584,6 @@ sub test_publish_object : Test(14) {
         data_object => $published_filename,
            };
     _test_object_message($message, $method, $body, $irods);
-    $publisher->rmq_disconnect();
 }
 
 sub test_publish_collection : Test(13) {
@@ -593,7 +593,7 @@ sub test_publish_collection : Test(13) {
        enable_rmq           => 0,
       );
     my $user = 'public';
-    my $publisher = WTSI::NPG::PublisherWithReporting->new
+    my $publisher = WTSI::NPG::iRODS::PublisherWithReporting->new
       (
        irods                => $irods,
        routing_key_prefix   => 'test',
@@ -601,7 +601,6 @@ sub test_publish_collection : Test(13) {
        rmq_config_path      => $conf,
        channel              => $test_counter,
       );
-    $publisher->rmq_init();
     my $pub_coll = $publisher->publish($data_path, $irods_tmp_coll);
     my $dest_coll = $irods_tmp_coll.'/reporter';
     $dest_coll = $irods->absolute_path($dest_coll);
@@ -622,7 +621,6 @@ sub test_publish_collection : Test(13) {
         collection  => $dest_coll,
            };
     _test_collection_message($message, $method, $body, $irods);
-    $publisher->rmq_disconnect();
 }
 
 ### methods for repeated tests ###
