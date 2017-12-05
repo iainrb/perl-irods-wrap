@@ -10,12 +10,12 @@ with 'WTSI::NPG::iRODS::Reportable::PublisherMQ';
 
 sub BUILD {
     my ($self, ) = @_;
-    $self->rmq_init();
+    return $self->rmq_init();
 }
 
 sub DEMOLISH {
     my ($self, ) = @_;
-    $self->rmq_disconnect();
+    return $self->rmq_disconnect();
 }
 
 

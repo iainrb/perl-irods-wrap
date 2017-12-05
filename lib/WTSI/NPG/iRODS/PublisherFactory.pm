@@ -5,6 +5,8 @@ use Moose;
 
 use WTSI::NPG::iRODS::Publisher;
 
+our $VERSION = '';
+
 =head2 make_publisher
 
   Arg [1]    : [ArrayRef] Arguments for creation of the Publisher object.
