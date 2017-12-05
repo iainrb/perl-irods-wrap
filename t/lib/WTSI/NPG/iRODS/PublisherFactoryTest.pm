@@ -22,21 +22,26 @@ sub make_publishers : Test(4) {
 
     my $factory = WTSI::NPG::iRODS::PublisherFactory->new();
 
+    my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
+                                      strict_baton_version => 0);
+    my $args = ['irods', $irods];
+
     my $publisher;
     local %ENV = %ENV;
     my $config = $ENV{NPG_RMQ_CONFIG};
     $ENV{NPG_RMQ_ENABLE} = 1;
     $ENV{NPG_RMQ_CONFIG} = 0;
-    $publisher = $factory->make_publisher();
-    is_ok($publisher, 'WTSI::NPG::iRODS::PublisherWithReporting');
+    $publisher = $factory->make_publisher($args);
+    isa_ok($publisher, 'WTSI::NPG::iRODS::PublisherWithReporting');
     $ENV{NPG_RMQ_ENABLE} = 0;
     $ENV{NPG_RMQ_CONFIG} = $config || './etc/rmq_test_config.json';
-    $publisher = $factory->make_publisher();
-    is_ok($publisher, 'WTSI::NPG::iRODS::PublisherWithReporting');
+    $publisher = $factory->make_publisher($args);
+    isa_ok($publisher, 'WTSI::NPG::iRODS::PublisherWithReporting');
     $ENV{NPG_RMQ_ENABLE} = 0;
     $ENV{NPG_RMQ_CONFIG} = 0;
-    $publisher = $factory->make_publisher();
-    is_ok($publisher, 'WTSI::NPG::iRODS::Publisher');
-    ok(!($publisher->isa('WTSI::NPG::iRODS::PublisherWithReporting')));
+    $publisher = $factory->make_publisher($args);
+    isa_ok($publisher, 'WTSI::NPG::iRODS::Publisher');
+    ok(!($publisher->isa('WTSI::NPG::iRODS::PublisherWithReporting')),
+       'Reporting not enabled for Publisher');
 
 }
