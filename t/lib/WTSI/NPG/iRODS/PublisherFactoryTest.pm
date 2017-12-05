@@ -34,6 +34,7 @@ sub make_publishers : Test(3) {
     $ENV{NPG_RMQ_CONFIG} = 0;
     $publisher = $factory->make_publisher($args);
     isa_ok($publisher, 'WTSI::NPG::iRODS::Publisher');
+    # ensure we have an instance of the parent class, not the subclass
     ok(!($publisher->isa('WTSI::NPG::iRODS::PublisherWithReporting')),
        'Factory does not return a PublisherWithReporting');
 
