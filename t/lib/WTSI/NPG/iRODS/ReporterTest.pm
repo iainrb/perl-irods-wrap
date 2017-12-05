@@ -12,8 +12,6 @@ use Test::More;
 
 use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
 
-require WTSI::NPG::iRODS::PublisherWithReporting;
-
 Log::Log4perl::init('./etc/log4perl_tests.conf');
 
 my $log = Log::Log4perl::get_logger();
