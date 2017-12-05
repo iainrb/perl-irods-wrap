@@ -21,7 +21,8 @@ use WTSI::NPG::iRODS::Publisher;
 
 sub make_publisher {
     my ($self, $args) = @_;
-    my @args = @{$args};
+    my @args;
+    if ( defined $args ) { @args = @{$args}; }
     my $publisher;
     if ($ENV{NPG_RMQ_ENABLE} || $ENV{NPG_RMQ_CONFIG}) {
         # 'require' ensures PublisherWithReporting not used unless wanted
