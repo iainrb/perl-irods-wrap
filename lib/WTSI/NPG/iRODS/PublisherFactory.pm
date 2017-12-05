@@ -32,7 +32,7 @@ sub make_publisher {
         require WTSI::NPG::iRODS::PublisherWithReporting;
         $publisher = WTSI::NPG::iRODS::PublisherWithReporting->new(%args);
     } else {
-        $publisher = WTSI::NPG::iRODS::Publisher->new(@args);
+        $publisher = WTSI::NPG::iRODS::Publisher->new(%args);
     }
     return $publisher;
 }
