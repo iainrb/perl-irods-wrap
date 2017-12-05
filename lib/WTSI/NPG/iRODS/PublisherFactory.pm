@@ -9,7 +9,7 @@ our $VERSION = '';
 
 =head2 make_publisher
 
-  Arg [1]    : [ArrayRef] Arguments for creation of the Publisher object.
+  Arg [1]    : [HashRef] Arguments for creation of the Publisher object.
 
   Example    : my $publisher = $factory->new()->make_publisher(@args);
 
@@ -23,14 +23,14 @@ our $VERSION = '';
 
 sub make_publisher {
     my ($self, $args) = @_;
-    my @args;
-    if ( defined $args ) { @args = @{$args}; }
+    my %args;
+    if ( defined $args ) { %args = %{$args}; }
     my $publisher;
     if ($ENV{NPG_RMQ_CONFIG}) {
         # 'require' ensures PublisherWithReporting not used unless wanted
         # eg. prerequisite module Net::AMQP::RabbitMQ may not be present
         require WTSI::NPG::iRODS::PublisherWithReporting;
-        $publisher = WTSI::NPG::iRODS::PublisherWithReporting->new(@args);
+        $publisher = WTSI::NPG::iRODS::PublisherWithReporting->new(%args);
     } else {
         $publisher = WTSI::NPG::iRODS::Publisher->new(@args);
     }

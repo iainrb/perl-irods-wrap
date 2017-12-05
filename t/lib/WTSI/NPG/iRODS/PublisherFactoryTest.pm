@@ -24,7 +24,7 @@ sub make_publishers : Test(3) {
 
     my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                       strict_baton_version => 0);
-    my $args = ['irods', $irods];
+    my $args = { 'irods' =>  $irods };
 
     my $publisher;
     local %ENV = %ENV;
