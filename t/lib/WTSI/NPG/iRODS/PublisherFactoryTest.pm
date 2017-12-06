@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use Log::Log4perl;
 
-use base qw(WTSI::NPG::iRODS::Test);
 use Test::More;
 use Test::Exception;
 
