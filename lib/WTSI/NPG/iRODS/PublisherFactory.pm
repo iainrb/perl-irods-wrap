@@ -23,7 +23,7 @@ our $VERSION = '';
 
 sub make_publisher {
     my ($self, $args) = @_;
-    my %args;
+    my %args = ();
     if ( defined $args ) { %args = %{$args}; }
     my $publisher;
     if ($ENV{NPG_RMQ_CONFIG}) {
