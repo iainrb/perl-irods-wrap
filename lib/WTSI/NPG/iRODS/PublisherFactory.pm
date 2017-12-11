@@ -7,6 +7,15 @@ use WTSI::NPG::iRODS::Publisher;
 
 our $VERSION = '';
 
+has 'enable_rmq' =>
+    (is       => 'ro',
+     isa      => 'Bool',
+     lazy     => 1,
+     default  => 0,
+     documentation => 'If true, publish messages to the RabbitMQ '.
+         'server. False by default.',
+ );
+
 =head2 make_publisher
 
   Args [n]   : Arguments for creation of the Publisher object.
@@ -24,7 +33,7 @@ our $VERSION = '';
 sub make_publisher {
     my ($self, @args) = @_;
     my $publisher;
-    if ($ENV{NPG_RMQ_CONFIG}) {
+    if ($self->enable_rmq) {
         # 'require' ensures PublisherWithReporting not used unless wanted
         # eg. prerequisite module Net::AMQP::RabbitMQ may not be installed
         require WTSI::NPG::iRODS::PublisherWithReporting;

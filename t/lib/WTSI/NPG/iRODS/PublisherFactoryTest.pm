@@ -19,22 +19,19 @@ sub require : Test(1) {
 
 sub make_publishers : Test(3) {
 
-    my $factory = WTSI::NPG::iRODS::PublisherFactory->new();
-
     my $irods = WTSI::NPG::iRODS->new(environment          => \%ENV,
                                       strict_baton_version => 0);
     my %args = ( 'irods' =>  $irods );
 
-    my $publisher;
-    local %ENV = %ENV;
-    $ENV{NPG_RMQ_CONFIG} ||= './etc/rmq_test_config.json';
-    $publisher = $factory->make_publisher(%args);
-    isa_ok($publisher, 'WTSI::NPG::iRODS::PublisherWithReporting');
-    $ENV{NPG_RMQ_CONFIG} = 0;
-    $publisher = $factory->make_publisher(%args);
-    isa_ok($publisher, 'WTSI::NPG::iRODS::Publisher');
+    my $factory0 = WTSI::NPG::iRODS::PublisherFactory->new(enable_rmq => 0);
+    my $publisher0 = $factory0->make_publisher(%args);
+    isa_ok($publisher0, 'WTSI::NPG::iRODS::Publisher');
     # ensure we have an instance of the parent class, not the subclass
-    ok(!($publisher->isa('WTSI::NPG::iRODS::PublisherWithReporting')),
+    ok(!($publisher0->isa('WTSI::NPG::iRODS::PublisherWithReporting')),
        'Factory does not return a PublisherWithReporting');
+
+    my $factory1 = WTSI::NPG::iRODS::PublisherFactory->new(enable_rmq => 1);
+    my $publisher1 = $factory1->make_publisher(%args);
+    isa_ok($publisher1, 'WTSI::NPG::iRODS::PublisherWithReporting');
 
 }
