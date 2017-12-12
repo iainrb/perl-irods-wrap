@@ -14,12 +14,15 @@ Log::Log4perl::init('./etc/log4perl_tests.conf');
 # dummy class to consume the PublisherFactory Role
 
 {
-    package MockPublisherFactory;
+    package WTSI::NPG::iRODS::MockPublisherBuilder;
+
+    use Moose;
 
     with 'WTSI::NPG::iRODS::PublisherFactory';
 
 }
 
+require WTSI::NPG::iRODS::MockPublisherBuilder;
 
 sub make_publishers : Test(7) {
 
@@ -32,7 +35,7 @@ sub make_publishers : Test(7) {
         routing_key_prefix => 'bar',
     );
 
-    my $factory0 = WTSI::NPG::iRODS::MockPublisherFactory->new(
+    my $factory0 = WTSI::NPG::iRODS::MockPublisherBuilder->new(
         enable_rmq => 0
     );
     my $publisher0 = $factory0->make_publisher(%args);
@@ -43,7 +46,7 @@ sub make_publishers : Test(7) {
     dies_ok { $factory0->make_publisher(%bad_args) }
         'Publisher creation dies with incorrect arguments';
 
-    my $factory1 = WTSI::NPG::iRODS::MockPublisherFactory->new(
+    my $factory1 = WTSI::NPG::iRODS::MockPublisherBuilder->new(
         enable_rmq         => 1,
         exchange           => 'foo',
         routing_key_prefix => 'bar',

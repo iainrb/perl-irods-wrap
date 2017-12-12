@@ -53,7 +53,7 @@ has 'routing_key_prefix' =>
 
 sub make_publisher {
     my ($self, @args) = @_;
-    @args = $self->process_args(@args);
+    @args = $self->_process_args(@args);
     my $publisher;
     if ($self->enable_rmq) {
         # 'require' ensures PublisherWithReporting not used unless wanted
