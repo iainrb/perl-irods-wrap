@@ -46,6 +46,11 @@ has 'routing_key_prefix' =>
   Description: Factory for creating Publisher objects of an appropriate
                class, depending if RabbitMQ messaging is enabled.
 
+               The RabbitMQ parameters 'exchange' and 'routing_key_prefix'
+               are specified by attributes of the PublisherFactory Role;
+               they must not be included in the list of arguments input to
+               this method.
+
   Returntype : WTSI::NPG::iRODS::Publisher or
                WTSI::NPG::iRODS::PublisherWithReporting
 
@@ -130,6 +135,8 @@ WTSI::NPG::iRODS::Publisher otherwise.
 
 RabbitMQ is enabled if the attribute enable_rmq is true; disabled otherwise.
 
+This role also includes attributes which may be used to store RabbitMQ
+parameters: exchange and routing_key_prefix.
 
 =head1 AUTHOR
 
