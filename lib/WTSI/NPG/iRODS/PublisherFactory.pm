@@ -22,7 +22,6 @@ has 'enable_rmq' =>
 has 'exchange' =>
     (is       => 'ro',
      isa      => 'Maybe[Str]',
-     default  => 'npg.gateway',
      documentation => 'A RabbitMQ exchange name. Relevant only if '.
          'enable_rmq is True.',
 );
