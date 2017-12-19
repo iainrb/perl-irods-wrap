@@ -12,39 +12,8 @@ use Try::Tiny;
 
 our $VERSION = '';
 
-with 'WTSI::NPG::RabbitMQ::Connectable';
-
-has 'channel' =>
-    (is       => 'ro',
-     isa      => 'Int',
-     default  => 1,
-     documentation => 'A RabbitMQ channel',
-);
-
-has 'exchange' =>
-    (is       => 'ro',
-     isa      => 'Str',
-     default  => 'npg.gateway',
-     documentation => 'A RabbitMQ exchange name',
-);
-
-has 'routing_key_prefix' =>
-    (is       => 'ro',
-     isa      => 'Str',
-     default  => 'prod',
-     documentation => 'Prefix for the RabbitMQ routing key. May be '.
-         'used to distinguish test from production messages.',
-);
-
-has 'enable_rmq' =>
-    (is       => 'ro',
-     isa      => 'Bool',
-     lazy     => 1,
-     default  => 1,
-     documentation => 'If true, publish messages to the RabbitMQ '.
-         'server. True by default.',
- );
-
+with qw [WTSI::NPG::iRODS::ConfigurableForRabbitMQ
+         WTSI::NPG::RabbitMQ::Connectable];
 
 =head2 collection_message_body
 

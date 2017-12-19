@@ -2,53 +2,57 @@ package WTSI::NPG::iRODS::PublisherFactory;
 
 use strict;
 use warnings;
-use Moose::Role;
+use Moose;
 
 use WTSI::NPG::iRODS::Publisher;
 
-with 'WTSI::DNAP::Utilities::Loggable';
+with qw [WTSI::NPG::iRODS::ConfigurableForRabbitMQ
+         WTSI::DNAP::Utilities::Loggable
+    ];
 
 our $VERSION = '';
 
-has 'enable_rmq' =>
-    (is       => 'ro',
-     isa      => 'Bool',
-     lazy     => 1,
-     default  => 0,
-     documentation => 'If true, publish messages to the RabbitMQ '.
-         'server. False by default.',
- );
+has 'irods' =>
+  (isa           => 'WTSI::NPG::iRODS',
+   is            => 'ro',
+   required      => 1,
+   documentation => 'An iRODS connection handle for publication');
 
-has 'exchange' =>
-    (is       => 'ro',
-     isa      => 'Maybe[Str]',
-     documentation => 'A RabbitMQ exchange name. Relevant only if '.
-         'enable_rmq is True.',
-);
+has 'checksum_cache_threshold' =>
+  (is            => 'ro',
+   isa           => 'Int',
+   required      => 1,
+   default       => 2048,
+   documentation => 'The size above which file checksums will be cached');
 
-has 'routing_key_prefix' =>
-    (is       => 'ro',
-     isa      => 'Maybe[Str]',
-     documentation => 'Prefix for the RabbitMQ routing key. May be '.
-         'used to distinguish test from production messages. Relevant '.
-         'only if enable_rmq is True.',
-);
+has 'require_checksum_cache' =>
+  (is            => 'ro',
+   isa           => 'ArrayRef[Str]',
+   required      => 1,
+   default       => sub { return [qw[bam cram]] },
+   documentation => 'A list of file suffixes for which MD5 cache files ' .
+                    'must be provided and will not be created on the fly');
 
+has 'checksum_cache_time_delta' =>
+  (is            => 'rw',
+   isa           => 'Int',
+   required      => 1,
+   default       => 60,
+   documentation => 'Time delta in seconds for checksum cache files to be ' .
+                    'considered stale. If a data file is newer than its '   .
+                    'cache by more than this number of seconds, the cache ' .
+                    'is stale');
 
 
 =head2 make_publisher
 
   Args [n]   : Arguments for creation of the Publisher object.
 
-  Example    : my $publisher = $factory->make_publisher(@args);
+  Example    : my $publisher = $factory->make_publisher();
 
   Description: Factory for creating Publisher objects of an appropriate
-               class, depending if RabbitMQ messaging is enabled.
-
-               The RabbitMQ parameters 'exchange' and 'routing_key_prefix'
-               are specified by attributes of the PublisherFactory Role;
-               they must not be included in the list of arguments input to
-               this method.
+               class, depending if RabbitMQ messaging is enabled. Arguments
+               for Publisher construction are derived from class attributes.
 
   Returntype : WTSI::NPG::iRODS::Publisher or
                WTSI::NPG::iRODS::PublisherWithReporting
@@ -56,8 +60,18 @@ has 'routing_key_prefix' =>
 =cut
 
 sub make_publisher {
-    my ($self, @args) = @_;
-    @args = $self->_process_args(@args);
+    my ($self, ) = @_;
+    my @args;
+    if ($self->enable_rmq) {
+        push @args, 'channel'            => $self->channel;
+        push @args, 'exchange'           => $self->exchange;
+        push @args, 'routing_key_prefix' => $self->routing_key_prefix;
+    }
+    push @args, 'irods'                    => $self->irods;
+    push @args, 'checksum_cache_threshold' => $self->checksum_cache_threshold;
+    push @args, 'require_checksum_cache'   => $self->require_checksum_cache;
+    push @args,
+        'checksum_cache_time_delta' => $self->checksum_cache_time_delta;
     my $publisher;
     if ($self->enable_rmq) {
         # 'require' ensures PublisherWithReporting not used unless wanted
@@ -68,38 +82,6 @@ sub make_publisher {
         $publisher = WTSI::NPG::iRODS::Publisher->new(@args);
     }
     return $publisher;
-}
-
-
-# check and update publisher creation arguments
-# - if exchange or routing_key_prefix is defined in arguments, croak
-# - if RabbitMQ is enabled:
-#   - if exchange or routing_key_prefix attribute is defined, populate
-#   argument from attribute
-#   - otherwise, do not populate argument (Publisher default will be used)
-
-sub _process_args {
-    my ($self, %args) = @_;
-    my $exchange_key = 'exchange';
-    my $prefix_key = 'routing_key_prefix';
-    my @rmq_keys = ($exchange_key, $prefix_key);
-    foreach my $key (@rmq_keys) {
-        if (defined $args{$key}) {
-            $self->logcroak
-                ('Key/value pair for ', $key, ' must not be defined ',
-                 'in Publisher arguments; instead, may be defined in ',
-                 'attribute of WTSI::NPG::iRODS::PublisherFactory.');
-        }
-    }
-    if ($self->enable_rmq) {
-        if (defined $self->exchange) {
-            $args{$exchange_key} = $self->exchange;
-        }
-        if (defined $self->routing_key_prefix) {
-            $args{$prefix_key} = $self->routing_key_prefix;
-        }
-    }
-    return %args;
 }
 
 

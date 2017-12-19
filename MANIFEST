@@ -19,6 +19,7 @@ lib/WTSI/NPG/iRODS/Publisher.pm
 lib/WTSI/NPG/iRODS/PublisherFactory.pm
 lib/WTSI/NPG/iRODS/PublisherWithReporting.pm
 lib/WTSI/NPG/iRODS/Replicate.pm
+lib/WTSI/NPG/iRODS/Reportable/ConfigurableForRabbitMQ.pm
 lib/WTSI/NPG/iRODS/Reportable/Base.pm
 lib/WTSI/NPG/iRODS/Reportable/iRODSMQ.pm
 lib/WTSI/NPG/iRODS/Reportable/PublisherMQ.pm
