@@ -108,6 +108,7 @@ sub test_add_collection : Test(11) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     $irods->rmq_init();
     my $irods_new_coll = $irods_tmp_coll.'/temp';
@@ -138,6 +139,7 @@ sub test_collection_avu : Test(31) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     $irods->rmq_init();
     $irods->add_collection_avu($irods_tmp_coll, 'colour', 'green');
@@ -170,8 +172,8 @@ sub test_collection_avu : Test(31) {
     my $i = 0;
     while ($i < $expected_messages ) {
     my $body = {avus       => $expected_avus[$i],
-                    acl        => \@acl,
-            collection => $irods_tmp_coll,
+                acl        => \@acl,
+                collection => $irods_tmp_coll,
            };
         $self->rmq_test_collection_message(
             $messages[$i], $methods[$i], $body, $irods
@@ -190,6 +192,7 @@ sub test_put_move_collection : Test(21) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     $irods->rmq_init();
     $irods->put_collection($data_path, $irods_tmp_coll);
@@ -242,6 +245,7 @@ sub test_remove_collection : Test(11) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     $irods->rmq_init();
     my @acl = $irods->get_collection_permissions($irods_new_coll);
@@ -255,7 +259,7 @@ sub test_remove_collection : Test(11) {
     my $method = 'remove_collection';
     my $body = {avus       => [],
                 acl        => \@acl,
-        collection => $irods_new_coll,
+                collection => $irods_new_coll,
            };
     $self->rmq_test_collection_message($message, $method, $body, $irods);
     $irods->rmq_disconnect();
@@ -270,6 +274,7 @@ sub test_set_collection_permissions : Test(21) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     $irods->rmq_init();
     my $user = 'public';
@@ -320,6 +325,7 @@ sub test_add_object : Test(12) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     $irods->rmq_init();
     my $copied_filename = 'lorem_copy.txt';
@@ -335,8 +341,8 @@ sub test_add_object : Test(12) {
     my @acl = $irods->get_object_permissions($added_remote_path);
     my $body =  {avus        => [],
                  acl         => \@acl,
-         collection  => $irods_tmp_coll,
-         data_object => $copied_filename,
+                 collection  => $irods_tmp_coll,
+                 data_object => $copied_filename,
            };
     $self->rmq_test_object_message($message, 'add_object', $body, $irods);
     $irods->rmq_disconnect();
@@ -351,6 +357,7 @@ sub test_copy_object : Test(12) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     $irods->rmq_init();
     my $copied_filename = 'lorem_copy.txt';
@@ -366,8 +373,8 @@ sub test_copy_object : Test(12) {
     my @acl = $irods->get_object_permissions($copied_remote_path);
     my $body =  {avus        => [],
                  acl         => \@acl,
-         collection  => $irods_tmp_coll,
-         data_object => $copied_filename,
+                 collection  => $irods_tmp_coll,
+                 data_object => $copied_filename,
            };
     $self->rmq_test_object_message($message, 'copy_object', $body, $irods);
     $irods->rmq_disconnect();
@@ -382,6 +389,7 @@ sub test_move_object : Test(12) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     $irods->rmq_init();
     my $moved_filename = 'lorem_moved.txt';
@@ -397,8 +405,8 @@ sub test_move_object : Test(12) {
     my @acl = $irods->get_object_permissions($moved_remote_path);
     my $body =  {avus        => [],
                  acl         => \@acl,
-         collection  => $irods_tmp_coll,
-         data_object => $moved_filename,
+                 collection  => $irods_tmp_coll,
+                 data_object => $moved_filename,
            };
     $self->rmq_test_object_message($message, 'move_object', $body, $irods);
     $irods->rmq_disconnect();
@@ -413,6 +421,7 @@ sub test_object_avu : Test(34) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     $irods->rmq_init();
     $irods->add_object_avu($remote_file_path, 'colour', 'green');
@@ -444,9 +453,9 @@ sub test_object_avu : Test(34) {
     my $i = 0;
     while ($i < $expected_messages ) {
     my $body = {avus        => $expected_avus[$i],
-                    acl         => \@acl,
-            data_object => $test_filename,
-            collection  => $irods_tmp_coll,
+                acl         => \@acl,
+                data_object => $test_filename,
+                collection  => $irods_tmp_coll,
            };
         $self->rmq_test_object_message(
             $messages[$i], $methods[$i], $body, $irods
@@ -465,6 +474,7 @@ sub test_remove_object : Test(12) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     $irods->rmq_init();
     my @acl = $irods->get_object_permissions($remote_file_path);
@@ -479,9 +489,9 @@ sub test_remove_object : Test(12) {
     my $method = 'remove_object';
     my $body =  {avus        => [],
                  acl         => \@acl,
-         data_object => $test_filename,
-         collection  => $irods_tmp_coll,
-           };
+                 data_object => $test_filename,
+                 collection  => $irods_tmp_coll,
+             };
     $self->rmq_test_object_message($message, $method, $body, $irods);
     $irods->rmq_disconnect();
 }
@@ -495,6 +505,7 @@ sub test_replace_object : Test(12) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     $irods->rmq_init();
     $irods->replace_object("$data_path/$test_filename", $remote_file_path);
@@ -508,8 +519,8 @@ sub test_replace_object : Test(12) {
     my @acl = $irods->get_object_permissions($remote_file_path);
     my $body =  {avus        => [],
                  acl         => \@acl,
-         data_object => $test_filename,
-         collection  => $irods_tmp_coll,
+                 data_object => $test_filename,
+                 collection  => $irods_tmp_coll,
            };
     $self->rmq_test_object_message($message, 'replace_object', $body, $irods);
     $irods->rmq_disconnect();
@@ -525,6 +536,7 @@ sub test_set_object_permissions : Test(23) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     $irods->rmq_init();
     my $user = 'public';
@@ -576,6 +588,7 @@ sub test_publish_object : Test(14) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     my $published_filename = 'ipsum.txt';
     my $remote_file_path = "$irods_tmp_coll/$published_filename";
@@ -615,6 +628,7 @@ sub test_publish_collection : Test(13) {
        hostname             => $test_host,
        rmq_config_path      => $conf,
        channel              => $test_counter,
+       enable_rmq           => 1,
       );
     my $pub_coll = $publisher->publish($data_path, $irods_tmp_coll);
     my $dest_coll = $irods_tmp_coll.'/reporter';
@@ -632,8 +646,8 @@ sub test_publish_collection : Test(13) {
     my $method = 'publish';
     my @acl = $irods->get_collection_permissions($dest_coll);
     my $body = {avus        => $pub_coll->get_metadata(),
-        acl         => \@acl,
-        collection  => $dest_coll,
+                acl         => \@acl,
+                collection  => $dest_coll,
            };
     $self->rmq_test_collection_message($message, $method, $body, $irods);
 }

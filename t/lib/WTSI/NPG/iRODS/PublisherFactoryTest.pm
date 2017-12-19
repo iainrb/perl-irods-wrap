@@ -7,6 +7,8 @@ use Log::Log4perl;
 use Test::More;
 use Test::Exception;
 
+use WTSI::NPG::iRODS::PublisherFactory;
+
 use base qw[WTSI::NPG::iRODS::TestRabbitMQ];
 
 Log::Log4perl::init('./etc/log4perl_tests.conf');

@@ -88,6 +88,7 @@ sub message : Test(13) {
       hostname             => $test_host,
       rmq_config_path      => $conf,
       channel              => $channel,
+      enable_rmq           => 1,
   );
   my $filename = 'a.txt';
   my $local_file_path  = "$tmp_data_path/publish/$filename";
