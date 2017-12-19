@@ -1,4 +1,4 @@
-package WTSI::NPG::iRODS::ConfigurableForRabbitMQ;
+package WTSI::NPG::iRODS::Reportable::ConfigurableForRabbitMQ;
 
 use strict;
 use warnings;
