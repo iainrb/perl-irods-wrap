@@ -6,7 +6,7 @@ use Moose;
 
 use WTSI::NPG::iRODS::Publisher;
 
-with qw [WTSI::NPG::iRODS::ConfigurableForRabbitMQ
+with qw [WTSI::NPG::iRODS::Reportable::ConfigurableForRabbitMQ
          WTSI::DNAP::Utilities::Loggable
     ];
 

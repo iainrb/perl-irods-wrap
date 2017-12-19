@@ -50,7 +50,7 @@ __END__
 
 =head1 NAME
 
-WTSI::NPG::iRODS::ConfigurableForRabbitMQ
+WTSI::NPG::iRODS::Reportable::ConfigurableForRabbitMQ
 
 =head1 DESCRIPTION
 

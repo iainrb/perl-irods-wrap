@@ -12,7 +12,7 @@ use Try::Tiny;
 
 our $VERSION = '';
 
-with qw [WTSI::NPG::iRODS::ConfigurableForRabbitMQ
+with qw [WTSI::NPG::iRODS::Reportable::ConfigurableForRabbitMQ
          WTSI::NPG::RabbitMQ::Connectable];
 
 =head2 collection_message_body
