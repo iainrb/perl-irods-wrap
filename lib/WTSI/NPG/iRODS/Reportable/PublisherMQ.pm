@@ -10,7 +10,7 @@ with 'WTSI::NPG::iRODS::Reportable::Base';
 
 requires qw[irods];
 
-our @REPORTABLE_METHODS = qw[publish];
+our @REPORTABLE_METHODS = qw[publish publish_file_single];
 
 foreach my $name (@REPORTABLE_METHODS) {
 
