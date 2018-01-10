@@ -10,7 +10,7 @@ use JSON;
 use Time::HiRes qw[gettimeofday];
 use Try::Tiny;
 
-our $VERSION = '2.6.2-dev0-102-gd9cc2d7';
+our $VERSION = '';
 
 with qw [WTSI::NPG::iRODS::Reportable::ConfigurableForRabbitMQ
          WTSI::NPG::RabbitMQ::Connectable];
