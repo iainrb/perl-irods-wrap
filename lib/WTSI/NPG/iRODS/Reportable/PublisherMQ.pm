@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Moose::Role;
 
-our $VERSION = '2.6.2-dev0-102-gd9cc2d7';
+our $VERSION = '';
 
 with 'WTSI::NPG::iRODS::Reportable::Base';
 
