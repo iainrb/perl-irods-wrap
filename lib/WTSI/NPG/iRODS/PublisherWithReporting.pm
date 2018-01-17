@@ -35,7 +35,7 @@ WTSI::NPG::iRODS::PublisherWithReporting
 
 =head1 DESCRIPTION
 
-Subclass of WTSI::NPG::iRODS::Publisher. Reports specified message calls
+Subclass of WTSI::NPG::iRODS::Publisher. Reports specified method calls
 by sending messages to a RabbitMQ server. Automatically connects to
 and disconnects from the RabbitMQ server on object creation and destruction,
 respectively.
